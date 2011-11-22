@@ -63,6 +63,6 @@ class DylanDomain (Domain):
     
 def setup (app):
     default_index_path = os.path.join(os.path.dirname(__file__), 'drm_index.txt')
-    app.add_config_value('dylan_drm_url', 'http://www.opendylan.org/books/drm/', 'html')
+    app.add_config_value('dylan_drm_url', 'http://opendylan.org/books/drm/', 'html')
     app.add_config_value('dylan_drm_index', default_index_path, 'html')
     app.add_domain(DylanDomain)
