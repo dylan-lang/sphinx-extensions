@@ -15,7 +15,7 @@ import sphinx.addnodes as SPHINX_NODES
 
 from docutils.parsers.rst.roles import set_classes
 from docutils.parsers.rst import Directive
-from sphinx.domains import Domain
+from sphinx.domains import Domain, Index
 from sphinx.domains import ObjType
 from sphinx.directives import DescDirective
 from sphinx.roles import XRefRole
@@ -65,7 +65,7 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
     
 
 #
-# Dylan language support
+# Dylan language directives
 #
 
 
@@ -134,24 +134,23 @@ class DylanDescDirective (DescDirective):
     
     def add_target_and_index (self, name_tuple, sigs, signode):
         # note target
-        name = name_tuple[0]
-        if name not in self.state.document.ids:
-            signode['names'].append(name)
-            signode['ids'].append(name)
+        fullname = name_tuple[0]
+        shortname = name_tuple[1]
+        if fullname not in self.state.document.ids:
+            signode['names'].append(fullname)
+            signode['ids'].append(fullname)
             signode['first'] = (not self.names)
             self.state.document.note_explicit_target(signode)
             inventory = self.env.domaindata['dylan']['objects']
-            if name in inventory:
+            if fullname in inventory:
                 self.state_machine.reporter.warning(
-                    'Duplicate description of Dylan %s %s, ' % (self.objtype, name) +
-                    'other instance in ' + self.env.doc2path(inventory[name][0]),
+                    'Duplicate description of Dylan %s %s, ' % (self.objtype, fullname) +
+                    'other instance in ' + self.env.doc2path(inventory[fullname][0]),
                     line=self.lineno)
-            inventory[name] = (self.env.docname, self.objtype)
+            inventory[fullname] = (self.env.docname, self.objtype, shortname)
 
         # add index
-        indextext = self.get_index_text(name_tuple)
-        if indextext:
-            self.indexnode['entries'].append(('single', indextext, name, ''))
+        self.indexnode['entries'].append(('single', shortname, fullname, ''))
 
     
 class DylanLibraryDesc (DylanDescDirective, DylanCurrentLibrary):
@@ -162,9 +161,6 @@ class DylanLibraryDesc (DylanDescDirective, DylanCurrentLibrary):
     def before_content (self):
         self.set_current_library(self.names[0])
 
-    def get_index_text (self, name_tuple):
-        return "%s (library)" % name_tuple[1]
-
         
 class DylanModuleDesc (DylanDescDirective, DylanCurrentModule):
     """A Dylan module."""
@@ -173,9 +169,6 @@ class DylanModuleDesc (DylanDescDirective, DylanCurrentModule):
     
     def before_content (self):
         self.set_current_module(self.names[0])
-
-    def get_index_text (self, name_tuple):
-        return "%s (module)" % name_tuple[1]
 
 
 class DylanBindingDesc (DylanDescDirective):
@@ -187,9 +180,6 @@ class DylanBindingDesc (DylanDescDirective):
         if module is None:
             raise ValueError('No current library or module')
         return "%s:%s" % (module, partial)
-        
-    def get_index_text (self, name_tuple):
-        return name_tuple[1]
 
 
 class DylanClassDesc (DylanBindingDesc):
@@ -201,6 +191,75 @@ class DylanClassDesc (DylanBindingDesc):
         GroupedField('keyword', label="Init-Keywords",
             names=('keyword', 'init-keyword'))
     ] + DylanBindingDesc.doc_field_types
+
+
+#
+# Dylan language indexing
+#
+
+
+class DylanObjectsIndex (Index):
+    """
+    Index for language objects.
+    Basically looks like the following, assuming Sphinx adds "extras" to it
+    in parentheses. ::
+    
+      tan (generic-function)
+      format-out
+        io:format-out (generic-function)
+        system:cheap-io (function)
+    """
+    
+    name = "apiindex"
+    localname = "API Index"
+    shortname = "api"
+    
+    def generate (self, docnames=None):
+        content = {}
+
+        # list of all objects, sorted by full name
+        objects = sorted(self.domain.data['objects'].iteritems(),
+                         key=lambda kv: "%s %s" % (kv[1][2].lower(), kv[0].lower()))
+
+        # Add entries
+        prev_shortname = ''
+        num_toplevels = 0
+        for fullname, (docname, objtype, shortname) in objects:
+            if docnames and docname not in docnames:
+                continue
+
+            entries = content.setdefault(shortname[0].lower(), [])
+
+            subtype = 0;
+            if prev_shortname == shortname:
+                if entries[-1][1] == 0:
+                    # First subentry. Replace previous entry with an unlinked header.
+                    prev_entry = entries[-1]
+                    entries[-1] = [shortname, 1, "", "", "", "", ""]
+                    # Duplicate previous entry as the first subentry, but use
+                    # library and module instead of short name.
+                    prev_fullname = prev_entry[3]
+                    prev_entry[0] = prev_fullname.split(":")[0:-1]
+                    prev_entry[1] = 2
+                    entries.append(prev_entry)
+                # Make the entry we are creating into a subentry.
+                shortname = fullname.split(":")[0:-1]
+                subtype = 2
+            else:
+                num_toplevels += 1
+
+            entries.append([shortname, subtype, docname, fullname,
+                            objtype, "", ""])
+
+        # apply heuristics when to collapse index at page load:
+        # only collapse if number of top level entries is larger than
+        # number of subentries
+        collapse = len(entries) - num_toplevels < num_toplevels
+
+        # sort by first letter
+        content = sorted(content.iteritems())
+
+        return (content, collapse)
 
 
 #
@@ -247,13 +306,17 @@ class DylanDomain (Domain):
         # 'constant': ObjType('constant', 'const'),
         # 'function': ObjType('function', 'func'),
         # 'method':   ObjType('method', 'meth'),
-        # 'generic-function': ObjType('generic-function', 'gf'),
+        # 'generic-function': ObjType('generic function', 'gf'),
         # 'macro':    ObjType('macro', 'macro'),
     }
     
     initial_data = {
-        'objects': {},      # fullname -> (docname, objtype)
+        'objects': {},      # fullname -> (docname, objtype, shortname)
     }
+    
+    indices = [
+        DylanObjectsIndex
+    ]
     
     drm_index = None
     
@@ -267,7 +330,9 @@ class DylanDomain (Domain):
         raise sphinx.environment.NoUri()
     
     def get_objects(self):
-        return []
+        for kv in self.data['objects'].iteritems():
+            (fullname, (docname, objtype, shortname)) = kv
+            yield (fullname, shortname, objtype, docname, fullname, 0)
         
     def get_type_name(self, type, primary=False):
         return super().get_type_name(type, primary)
