@@ -17,10 +17,10 @@ Roles
 
    Reference to a page or exported name in the `Dylan Reference Manual`:t:.
 
-   :Syntax 1:  ``:dylan:drm:`linkname```
-   :Syntax 2:  ``:dylan:drm:`displayed text <linkname>```
+   :Syntax 1:  ``:dylan:drm:`LINKNAME```
+   :Syntax 2:  ``:dylan:drm:`DISPLAYED TEXT <LINKNAME>```
 
-   *linkname* is an exported name or the last part of the URL of a page or
+   *LINKNAME* is an exported name or the last part of the URL of a page or
    section. Exported names are converted into partial URLs per the file
    configured by `dylan_drm_index`_. The partial URL is appended to the base URL
    configured by the `dylan_drm_url`_.
@@ -58,8 +58,9 @@ Directives with content
    A library. You can document the modules exported by the library inside or
    after this directive, or elsewhere via `dylan:current-library::`_.
    
-   :Syntax:       ``.. dylan:library:: name``
+   :Syntax:       ``.. dylan:library:: NAME``
    :Arguments:    None
+   :Doc Fields:   None
    :Reference:    `:dylan:lib:`_
 
 ``dylan:module::``
@@ -68,8 +69,9 @@ Directives with content
    A module. You can document the names exported by the module inside or after
    this directive, or elsewhere via `dylan:current-module::`_.
    
-   :Syntax:       ``.. dylan:module:: name``
-   :Arguments:    None
+   :Syntax:       ``.. dylan:module:: NAME``
+   :Arguments:    `:library:`_
+   :Doc Fields:   None
    :Reference:    `:dylan:mod:`_
 
 ``dylan:class::``
@@ -77,18 +79,21 @@ Directives with content
 
    A class.
 
-   :Syntax:       ``.. dylan:class:: name``
-   :Arguments:    `:super:`_, `:keyword:`_, `:signal:`_, `:open:`_, `:primary:`_,
-                  `:abstract:`_
+   :Syntax:       ``.. dylan:class:: NAME``
+   :Arguments:    `:open:`_, `:primary:`_, `:abstract:`_, `:library:`_,
+                  `:module:`_
+   :Doc Fields:   `:supers:`_, `:keyword:`_
    :Reference:    `:dylan:class:`_
 
    Example::
    
       .. class:: <vector>
-         :super: <array>
-         :keyword: size: An instance of `<integer>`:class: specifying the size
+         :open:
+      
+         :supers: `<array>`:class
+         :keyword size:  An instance of `<integer>`:class: specifying the size
                          of the vector. The default value is ``0``.
-         :keyword: fill:
+         :keyword fill:
              An instance of `<object>`:class: specifying the initial value for
              each element of the vector. The default value is ``#f``.
 
@@ -97,61 +102,67 @@ Directives with content
 
    A generic function.
    
-   :Syntax:       ``.. dylan:generic-function:: name``
-   :Arguments:    `:param:`_, `:retval:`_, `:signal:`_, `:sealed:`_
+   :Syntax:       ``.. dylan:generic-function:: NAME``
+   :Arguments:    `:sealed:`_, `:library:`_, `:module:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_
    :Reference:    `:dylan:gf:`_
    
    Example::
    
       .. generic-function:: member?
-         :param:  value       An instance of `<object>`:class:.
-         :param:  collection  An instance of `<collection>`:class:.
-         :param:  test:       An instance of `<function>`:class:. The default is
+         :sealed:
+      
+         :param value:        An instance of `<object>`:class:.
+         :param collection:   An instance of `<collection>`:class:.
+         :param #key test:    An instance of `<function>`:class:. The default is
                               `==`:gf:.
-         :retval: boolean     An instance of `<boolean>`:class:.
+         :value bool:         An instance of `<boolean>`:class:.
       
       .. method::
-         :signature: <object>, <range>
+         :specializer: <object>, <range>
 
 ``dylan:method::``
 ^^^^^^^^^^^^^^^^^^
 
    A method of a generic function.
    
-   :Syntax:       ``.. dylan:method:: name``
-   :Arguments:    `:signature:`_, `:param:`_, `:retval:`_, `:signal:`_
+   :Syntax:       ``.. dylan:method:: NAME``
+   :Arguments:    `:specializer:`_, `:library:`_, `:module:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_
    :Reference:    `:dylan:meth:`_
    
-   After a generic function, *name* and all arguments other than *signature* may
-   be omitted. The arguments of the generic function will be used. See
+   After a generic function, *NAME* and all doc fields may be omitted. The name
+   and arguments of the generic function will be used. See
    `dylan:generic-function::`_ for an example of this.
    
-   References to a method must be disambiguated by enclosing the signature in
+   References to a method must be disambiguated by enclosing *SPECIALIZER* in
    parentheses, as shown by the reference to ``type-for-copy`` in the following
-   example.
+   example. The specializer is author-defined and does not necessarily have to
+   reflect all the parameters of the method.
    
    Example::
       
       .. method:: copy-sequence
-         :signature: <range>
-         :param:  source   An instance of `<range>`:class:.
-         :param:  start:   An instance of `<integer>`:class. The default is
-                           ``0``.
-         :param:  end:     An instance of `<integer>`:class. The default is the
-                           size of *source*.
-         :retval: new-range   A freshly allocated instance of `<range>`:class:.
+         :specializer: <range>
+         
+         :param source:       An instance of `<range>`:class:.
+         :param #key start:   An instance of `<integer>`:class. The default is
+                              ``0``.
+         :param #key end:     An instance of `<integer>`:class. The default is
+                              the size of *source*.
+         :value new-range:    A freshly allocated instance of `<range>`:class:.
          
          *new-range* will be a `<range>`:class: even though the return value of
          `type-for-copy(<range>)`:meth: is a `<list>`:class:.
-
 
 ``dylan:function::``
 ^^^^^^^^^^^^^^^^^^^^
 
    A function that does not belong to a generic function.
    
-   :Syntax:       ``.. dylan:function:: name``
-   :Arguments:    `:param:`_, `:retval:`_, `:signal:`_
+   :Syntax:       ``.. dylan:function:: NAME``
+   :Arguments:    `:library:`_, `:module:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_
    :Reference:    `:dylan:func:`_
 
 ``dylan:constant::``
@@ -159,8 +170,9 @@ Directives with content
 
    A constant.
    
-   :Syntax:       ``.. dylan:constant:: name``
-   :Arguments:    `:type:`_, `:value:`_
+   :Syntax:       ``.. dylan:constant:: NAME``
+   :Arguments:    `:library:`_, `:module:`_
+   :Doc Fields:   `:type:`_, `:value: (2)`_
    :Reference:    `:dylan:const:`_
 
 ``dylan:variable::``
@@ -168,8 +180,9 @@ Directives with content
 
    A variable.
    
-   :Syntax:       ``.. dylan:variable:: name``
-   :Arguments:    `:type:`_, `:value:`_
+   :Syntax:       ``.. dylan:variable:: NAME``
+   :Arguments:    `:library:`_, `:module:`_
+   :Doc Fields:   `:type:`_, `:value: (2)`_
    :Reference:    `:dylan:var:`_
 
 ``dylan:macro::``
@@ -177,18 +190,10 @@ Directives with content
 
    A macro.
    
-   :Syntax:       ``.. dylan:macro:: name``
-   :Arguments:    `:param:`_, `:retval:`_, `:signal:`_
+   :Syntax:       ``.. dylan:macro:: NAME``
+   :Arguments:    `:library:`_, `:module:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_
    :Reference:    `:dylan:macro:`_
-
-``dylan:unbound-name::``
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-   A name that was exported but not bound, as by a module's ``create`` clause.
-   
-   :Syntax:       ``.. dylan:unbound-name:: name``
-   :Arguments:    None
-   :Reference:    `:dylan:name:`_
 
 
 Directives without content
@@ -201,7 +206,7 @@ Directives without content
    documentation is elsewhere. You can document the modules exported by the
    library after this directive.
    
-   :Syntax:    ``.. dylan:current-library:: name``
+   :Syntax:    ``.. dylan:current-library:: LIBRARY``
    :Arguments: None
 
 ``dylan:current-module::``
@@ -211,99 +216,108 @@ Directives without content
    documentation is elsewhere. You can document the names exported by the module
    after this directive.
 
-   :Syntax:    ``.. dylan:current-module:: name``
-   :Arguments: None
-   
-``dylan:reexport::``
-^^^^^^^^^^^^^^^^^^^^
-
-   A name or module that is simply reexported from elsewhere. This creates a
-   cross-reference.
-   
-   :Syntax:    ``.. dylan:reexport:: name from library:module:name``
+   :Syntax:    ``.. dylan:current-module:: MODULE``
    :Arguments: None
 
-   You may omit *library* or *module* to use the current library or module. The
-   following ``reexport`` directives are all equivalent::
 
-      .. current-library:: io
-      .. current-module::  streams
-         
-      .. reexport:: close-stream from io:streams:close
-      .. reexport:: close-stream from streams:close
-      .. reexport:: close-stream from close
+Directive doc fields
+--------------------
 
+Doc fields appear in the directive's content. Doc fields must be separated from
+the directive and any directive arguments by a blank line.
 
-Directive arguments
--------------------
+``:supers:``
+^^^^^^^^^^^^
 
-``:super:``
-^^^^^^^^^^^
-
-   A superclass of a class. This argument may appear multiple times.
+   A superclass of a class. This doc field may appear multiple times.
    
-   :Syntax: ``:super: library:module:name``
-   
-   You may omit *library* or *module* to use the current library or module.
+   :Syntax:    ``:supers: DESCRIPTION``
+   :Synonyms:  ``:superclasses:``
 
 ``:keyword:``
 ^^^^^^^^^^^^^
 
-   An init-keyword of a class. This argument may appear multiple times.
+   An init-keyword of a class. This doc field may appear multiple times.
    
-   :Syntax: ``:keyword: name description``
+   :Syntax:    ``:keyword NAME: DESCRIPTION``
+   :Synonyms:  ``:init-keyword:``
    
    See `dylan:class::`_ for an example.
 
 ``:param:``
 ^^^^^^^^^^^
 
-   A parameter of a generic function or method. This argument may appear
+   A parameter of a generic function or method. This doc field may appear
    multiple times.
    
-   :Syntax: ``:param: name description``
+   :Syntax 1:  ``:param NAME: DESCRIPTION``
+   :Syntax 2:  ``:param #key NAME: DESCRIPTION``
+   :Syntax 3:  ``:param #rest NAME: DESCRIPTION``
+   :Synonyms:  ``:parameter:``, ``:argument:``, ``:arg:``
    
    See `dylan:generic-function::`_ and `dylan:method::`_ for examples.
    
-``:retval:``
-^^^^^^^^^^^^
-
-   A return value of a generic function or method. This argument may appear
-   multiple times.
-   
-   :Syntax: ``:retval: name description``
-   
-   See `dylan:generic-function::`_ and `dylan:method::`_ for examples.
-
-``:signature:``
+``:value:`` (1)
 ^^^^^^^^^^^^^^^
 
-   The signature of the method -- the types of its required parameters. This
-   argument is required in `dylan:method::`_ directives.
+   A return value of a generic function or method. This doc field may appear
+   multiple times.
    
-   :Syntax: ``:signature: expression, expression, ...``
-   
-   If *expression* is a *library:module:name* expression (*library* and *module*
-   optional), it will make a cross-reference.
+   :Syntax 1:  ``:value NAME: DESCRIPTION``
+   :Syntax 2:  ``:value #rest NAME: DESCRIPTION``
+   :Synonyms:  ``:return:``, ``:retval:``, ``:val:``
    
    See `dylan:generic-function::`_ and `dylan:method::`_ for examples.
-   
+
 ``:type:``
 ^^^^^^^^^^
 
    The type of a variable or constant.
    
-   :Syntax: ``:type: expression``
+   :Syntax:    ``:type: EXPRESSION``
+   :Synonyms:  None
 
-   If *expression* is a *library:module:name* expression (*library* and *module*
-   optional), it will make a cross-reference.
-
-``:value:``
-^^^^^^^^^^^
+``:value:`` (2)
+^^^^^^^^^^^^^^^
 
    The initial value of a variable or constant.
    
-   :Syntax: ``:value: expression``
+   :Syntax:    ``:value: EXPRESSION``
+   :Synonyms:  ``:val:``
+
+
+Directive arguments
+-------------------
+
+Directive arguments appear immediately after the directive with no intervening
+blank lines.
+
+``:library:``
+^^^^^^^^^^^^^
+
+   Sets the current library for a directive. Mostly for automatically-generated
+   documentation; hand-written documentation can use `dylan:current-library::`_.
+   
+   :Syntax: ``:library: NAME``
+
+``:module:``
+^^^^^^^^^^^^^
+
+   Sets the current module for a directive. Mostly for automatically-generated
+   documentation; hand-written documentation can use `dylan:current-module::`_.
+   
+   :Syntax: ``:module: NAME``
+
+``:specializer:``
+^^^^^^^^^^^^^^^^^
+
+   A way to distinguish one method from another -- generally a list of the types
+   of its required parameters. This argument is required in `dylan:method::`_
+   directives.
+   
+   :Syntax: ``:specializer: EXPRESSION, EXPRESSION, ...``
+   
+   See `dylan:generic-function::`_ and `dylan:method::`_ for examples.
    
 ``:open:``
 ^^^^^^^^^^
@@ -333,15 +347,6 @@ Directive arguments
    
    :Syntax: ``:sealed:``
 
-``:signal:``
-^^^^^^^^^^^^
-
-   Describes a condition signaled by the class's ``make`` method or another
-   method. This argument may appear multiple times.
-   
-   :Syntax: ``:signal: description``
-
-
 Roles
 -----
 
@@ -350,14 +355,14 @@ Roles
    languages, but if you use the ``!`` or ``~`` marks, you must enclose the
    target in ``< >``.
    
-   :Syntax 1: ``:dylan:role:`library:module:name```
-   :Syntax 2: ``:dylan:role:`text <library:module:name>```
-   :Syntax 3: ``:dylan:role:`mark <library:module:name>```
-   :Syntax 4: ``:dylan:role:`mark text <library:module:name>```
+   :Syntax 1: ``:dylan:role:`LIBRARY:MODULE:NAME```
+   :Syntax 2: ``:dylan:role:`TEXT <LIBRARY:MODULE:NAME>```
+   :Syntax 3: ``:dylan:role:`MARK <LIBRARY:MODULE:NAME>```
+   :Syntax 4: ``:dylan:role:`MARK TEXT <LIBRARY:MODULE:NAME>```
    
-   - You may omit *library* or *module* to use the current library or module.
-   - *mark* may be ``!`` to avoid making a hyperlink, or ``~`` to only show the
-     *name* part of the identifier, or both.
+   - You may omit *LIBRARY* or *MODULE* to use the current library or module.
+   - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` to only show the
+     *NAME* part of the identifier, or both.
      
    Examples::
    
@@ -369,68 +374,61 @@ Roles
       
       See `the <stream> class <<stream>>`:class: for more information.
       
-
 ``:dylan:lib:``
 ^^^^^^^^^^^^^^^
 
-   See `dylan:library::`_.
+   Creates a cross-reference to a `dylan:library::`_ directive.
 
 ``:dylan:mod:``
 ^^^^^^^^^^^^^^^
 
-   See `dylan:module::`_.
+   Creates a cross-reference to a `dylan:module::`_ directive.
 
 ``:dylan:class:``
 ^^^^^^^^^^^^^^^^^
 
-   See `dylan:class::`_.
+   Creates a cross-reference to a `dylan:class::`_ directive.
 
 ``:dylan:gf:``
 ^^^^^^^^^^^^^^
 
-   See `dylan:generic-function::`_.
+   Creates a cross-reference to a `dylan:generic-function::`_ directive.
 
 ``:dylan:meth:``
 ^^^^^^^^^^^^^^^^
 
-   See `dylan:method::`_.
+   Creates a cross-reference to a `dylan:method::`_ directive.
    
    The syntax is similar to other roles.
    
-   :Syntax 1: ``:dylan:meth:`library:module:name(signature)```
-   :Syntax 2: ``:dylan:meth:`text <library:module:name(signature)>```
-   :Syntax 3: ``:dylan:meth:`mark <library:module:name(signature)>```
-   :Syntax 4: ``:dylan:meth:`mark text <library:module:name(signature)>```
+   :Syntax 1: ``:dylan:meth:`LIBRARY:MODULE:NAME(SPECIALIZER)```
+   :Syntax 2: ``:dylan:meth:`TEXT <LIBRARY:MODULE:NAME(SPECIALIZER)>```
+   :Syntax 3: ``:dylan:meth:`MARK <LIBRARY:MODULE:NAME(SPECIALIZER)>```
+   :Syntax 4: ``:dylan:meth:`MARK TEXT <LIBRARY:MODULE:NAME(SPECIALIZER)>```
    
-   - The *signature* component matches a method directive's `:signature:`_
+   - The *SPECIALIZER* component matches a method directive's `:specializer:`_
      argument.
-   - You may omit *library* or *module* to use the current library or module.
-   - *mark* may be ``!`` to avoid making a hyperlink, or ``~`` to only
-     show the *name* and *signature* parts of the identifier, or both.
-
+   - You may omit *LIBRARY* or *MODULE* to use the current library or module.
+   - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` to only
+     show the *NAME* and *SPECIALIZER* parts of the identifier, or both.
 
 ``:dylan:func:``
 ^^^^^^^^^^^^^^^^
 
-   See `dylan:function::`_.
+   Creates a cross-reference to a `dylan:function::`_ directive.
    
 ``:dylan:const:``
 ^^^^^^^^^^^^^^^^^
 
-   See `dylan:constant::`_.
+   Creates a cross-reference to a `dylan:constant::`_ directive.
    
 ``:dylan:var:``
 ^^^^^^^^^^^^^^^
 
-   See `dylan:variable::`_.
+   Creates a cross-reference to a `dylan:variable::`_ directive.
    
 ``:dylan:macro:``
 ^^^^^^^^^^^^^^^^^
 
-   See `dylan:macro::`_.
-   
-``:dylan:name:``
-^^^^^^^^^^^^^^^^
-
-   See `dylan:unbound-name::`_.
+   Creates a cross-reference to a `dylan:macro::`_ directive.
    

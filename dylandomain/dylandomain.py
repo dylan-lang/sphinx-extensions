@@ -20,6 +20,7 @@ from sphinx.domains import ObjType
 from sphinx.directives import DescDirective
 from sphinx.roles import XRefRole
 from sphinx.util.docfields import Field, GroupedField, TypedField
+from sphinx.util.nodes import make_refnode
 
 
 #
@@ -58,7 +59,7 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
     else:
         msg = inliner.reporter.error(
             'Invalid syntax for :dylan:drm: role; '
-            '`%s` should be like `ref` or `text <ref>`.' % text,
+            '`{}` should be like `ref` or `text <ref>`.'.format(text),
             line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
@@ -84,7 +85,7 @@ class DylanCurrentLibrary (Directive):
         env.temp_data['dylan:library'] = library_tuple[0]
 
     def run (self):
-        name = self.get_library_fullname(self.arguments[0].strip)
+        name = self.get_library_fullname(self.arguments[0].strip())
         self.set_current_library(name)
         return []
     
@@ -101,14 +102,14 @@ class DylanCurrentModule (Directive):
         library = env.temp_data.get('dylan:library', None)
         if library is None:
             raise ValueError('No current library')
-        return "%s:%s" % (library, partial)
+        return "{}:{}".format(library, partial)
 
     def set_current_module (self, module_tuple):
         env = self.state.document.settings.env
         env.temp_data['dylan:module'] = module_tuple[0]
 
     def run (self):
-        name = self.get_module_fullname(self.arguments[0].strip)
+        name = self.get_module_fullname(self.arguments[0].strip())
         self.set_current_module(name)
         return []
 
@@ -116,17 +117,16 @@ class DylanCurrentModule (Directive):
 class DylanDescDirective (DescDirective):
     """A documentable Dylan language object."""
 
-    option_spec = {
-        'noindex': DescDirective.option_spec['noindex'],
+    option_spec = dict(DescDirective.option_spec.items() + {
         'synopsis': DIRECTIVES.unchanged,
-    }
+    }.items())
     
     def fullname (self, partial):
         """Subclasses return the full, qualified name of this language element."""
         pass
     
     def handle_signature (self, sigs, signode):
-        partial = sigs[0].strip
+        partial = sigs.strip()
         fullname = self.fullname(partial)
         signode += SPHINX_NODES.desc_name(partial, partial)
         signode['fullname'] = fullname
@@ -144,8 +144,9 @@ class DylanDescDirective (DescDirective):
             inventory = self.env.domaindata['dylan']['objects']
             if fullname in inventory:
                 self.state_machine.reporter.warning(
-                    'Duplicate description of Dylan %s %s, ' % (self.objtype, fullname) +
-                    'other instance in ' + self.env.doc2path(inventory[fullname][0]),
+                    'Duplicate description of Dylan {} {}, other instance in {}'
+                        .format(self.objtype, fullname,
+                                self.env.doc2path(inventory[fullname][0])),
                     line=self.lineno)
             inventory[fullname] = (self.env.docname, self.objtype, shortname)
 
@@ -165,6 +166,10 @@ class DylanLibraryDesc (DylanDescDirective, DylanCurrentLibrary):
 class DylanModuleDesc (DylanDescDirective, DylanCurrentModule):
     """A Dylan module."""
 
+    option_spec = dict(DylanDescDirective.option_spec.items() + {
+        'library': DIRECTIVES.unchanged, # Replace with something that sets local libary.
+    }.items())
+
     fullname = DylanCurrentModule.get_module_fullname
     
     def before_content (self):
@@ -174,22 +179,97 @@ class DylanModuleDesc (DylanDescDirective, DylanCurrentModule):
 class DylanBindingDesc (DylanDescDirective):
     """A Dylan binding."""
     
+    option_spec = dict(DylanDescDirective.option_spec.items() + {
+        'library': DIRECTIVES.unchanged, # TODO: Replace with directive-local libary setter.
+        'module': DIRECTIVES.unchanged, # TODO: Replace with directive-local module setter.
+    }.items())
+
     def fullname (self, partial):
         env = self.state.document.settings.env
         module = env.temp_data.get('dylan:module', None)
         if module is None:
             raise ValueError('No current library or module')
-        return "%s:%s" % (module, partial)
+        return "{}:{}".format(module, partial)
 
 
 class DylanClassDesc (DylanBindingDesc):
     """A Dylan class."""
 
+    option_spec = dict(DylanBindingDesc.option_spec.items() + {
+        'open': DIRECTIVES.flag,
+        'primary': DIRECTIVES.flag,
+        'abstract': DIRECTIVES.flag,
+    }.items())
+
     doc_field_types = [
-        GroupedField('superclass', label="Superclasses",
-            names=('superclass', 'super')),
+        Field('superclasses', label="Superclasses",
+            names=('supers', 'superclasses', )),
         GroupedField('keyword', label="Init-Keywords",
             names=('keyword', 'init-keyword'))
+    ] + DylanBindingDesc.doc_field_types
+
+
+class DylanFunctionDesc (DylanBindingDesc):
+    """A Dylan function, method, or generic function."""
+
+    doc_field_types = [
+        TypedField('parameters', label="Parameters",
+            names=('param', 'parameter', 'arg', 'argument')),
+        GroupedField('values', label="Values",
+            names=('value', 'val', 'retval', 'return'))
+    ] + DylanBindingDesc.doc_field_types
+
+
+class DylanGenFuncDesc (DylanFunctionDesc):
+    """A Dylan generic function."""
+
+    option_spec = dict(DylanFunctionDesc.option_spec.items() + {
+        'sealed': DIRECTIVES.flag,
+    }.items())
+
+
+class DylanMethodDesc (DylanFunctionDesc):
+    """A Dylan method in a generic function."""
+
+    option_spec = dict(DylanFunctionDesc.option_spec.items() + {
+        'specializer': DIRECTIVES.unchanged, # Do something with this.
+    }.items())
+
+
+class DylanConstFuncDesc (DylanFunctionDesc):
+    """A Dylan function not associated with a generic function."""
+    pass
+
+
+class DylanConstOrVarDesc (DylanBindingDesc):
+    """A Dylan constant or variable."""
+
+    doc_field_types = [
+        Field('type', label="Type",
+            names=('type')),
+        Field('value', label="Value",
+            names=('value', 'val'))
+    ] + DylanBindingDesc.doc_field_types
+
+
+class DylanConstantDesc (DylanConstOrVarDesc):
+    """A Dylan constant."""
+    pass
+
+
+class DylanVariableDesc (DylanConstOrVarDesc):
+    """A Dylan variable."""
+    pass
+
+
+class DylanMacroDesc (DylanBindingDesc):
+    """A Dylan macro."""
+
+    doc_field_types = [
+        TypedField('parameters', label="Parameters",
+            names=('param', 'parameter', 'arg', 'argument')),
+        GroupedField('values', label="Values",
+            names=('value', 'val', 'retval', 'return'))
     ] + DylanBindingDesc.doc_field_types
 
 
@@ -215,11 +295,12 @@ class DylanObjectsIndex (Index):
     shortname = "api"
     
     def generate (self, docnames=None):
+        # Dictionary of first letter -> array of entry records with that letter
         content = {}
 
         # list of all objects, sorted by full name
         objects = sorted(self.domain.data['objects'].iteritems(),
-                         key=lambda kv: "%s %s" % (kv[1][2].lower(), kv[0].lower()))
+                         key=lambda kv: "{} {}".format(kv[1][2].lower(), kv[0].lower()))
 
         # Add entries
         prev_shortname = ''
@@ -232,7 +313,7 @@ class DylanObjectsIndex (Index):
 
             subtype = 0;
             if prev_shortname == shortname:
-                if entries[-1][1] == 0:
+                if len(entries) > 0 and entries[-1][1] == 0:
                     # First subentry. Replace previous entry with an unlinked header.
                     prev_entry = entries[-1]
                     entries[-1] = [shortname, 1, "", "", "", "", ""]
@@ -251,16 +332,48 @@ class DylanObjectsIndex (Index):
             entries.append([shortname, subtype, docname, fullname,
                             objtype, "", ""])
 
-        # apply heuristics when to collapse index at page load:
+        # apply heuristics as to when to collapse index at page load:
         # only collapse if number of top level entries is larger than
         # number of subentries
-        collapse = len(entries) - num_toplevels < num_toplevels
+        collapse = len(content) - num_toplevels < num_toplevels
 
         # sort by first letter
         content = sorted(content.iteritems())
 
         return (content, collapse)
 
+
+#
+# Dylan language cross-references
+#
+
+
+def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
+    match = RE.match(r'^(\S+)$|^(.*) <(\S+)>$', text)
+    if match:
+        linkkey1, linktitle, linkkey2 = match.groups()
+        linkkey = (linkkey1 or linkkey2)
+        esc_linkkey = linkkey.replace("<", r"\<").replace(">", r"\>")
+        if linktitle:
+            esc_linktitle = linktitle.replace("<", r"\<").replace(">", r"\>")
+        
+        if linktitle:
+            new_text = "{} <{}>".format(linktitle, linkkey)
+            new_rawtext = ":{}:`{} <{}>`".format(name, esc_linktitle, esc_linkkey)
+        else:
+            new_text = "{}".format(linkkey)
+            new_rawtext = ":{}:`<{}>`".format(name, esc_linkkey)
+        
+        do_xref = XRefRole()
+        return do_xref(name, new_rawtext, new_text, lineno, inliner, options, context)
+    else:
+        msg = inliner.reporter.error(
+            'Invalid syntax for :{}: role; '
+            '`{}` should be like `ref` or `text <ref>`.'.format(name, text),
+            line=lineno)
+        prb = inliner.problematic(rawtext, rawtext, msg)
+        return [prb], [msg]
+    
 
 #
 # Domain definition
@@ -273,15 +386,15 @@ class DylanDomain (Domain):
     
     roles = {
         'drm': drm_link,
-        'lib': XRefRole(),
-        'mod': XRefRole(),
-        'class': XRefRole(),
-        # 'var': ,
-        # 'const': ,
-        # 'func': ,
-        # 'meth': ,
-        # 'gf': ,
-        # 'macro': ,
+        'lib': desc_link,
+        'mod': desc_link,
+        'class': desc_link,
+        'var': desc_link,
+        'const': desc_link,
+        'func': desc_link,
+        'meth': desc_link,
+        'gf': desc_link,
+        'macro': desc_link,
     }
     
     directives = {
@@ -290,28 +403,33 @@ class DylanDomain (Domain):
         'library': DylanLibraryDesc,
         'module': DylanModuleDesc,
         'class': DylanClassDesc,
-        # 'variable': ,
-        # 'constant': ,
-        # 'function': ,
-        # 'method': ,
-        # 'generic-function': ,
-        # 'macro': ,
+        'variable': DylanVariableDesc,
+        'constant': DylanConstantDesc,
+        'function': DylanConstFuncDesc,
+        'method': DylanMethodDesc,
+        'generic-function': DylanGenFuncDesc,
+        'macro': DylanMacroDesc,
     }
     
     object_types = {
         'library':  ObjType('library', 'lib'),
         'module':   ObjType('module', 'mod'),
         'class':    ObjType('class', 'class'),
-        # 'variable': ObjType('variable', 'var'),
-        # 'constant': ObjType('constant', 'const'),
-        # 'function': ObjType('function', 'func'),
-        # 'method':   ObjType('method', 'meth'),
-        # 'generic-function': ObjType('generic function', 'gf'),
-        # 'macro':    ObjType('macro', 'macro'),
+        'variable': ObjType('variable', 'var'),
+        'constant': ObjType('constant', 'const'),
+        'function': ObjType('function', 'func'),
+        'method':   ObjType('method', 'meth'),
+        'generic-function': ObjType('generic-function', 'gf'),
+        'macro':    ObjType('macro', 'macro'),
     }
     
     initial_data = {
         'objects': {},      # fullname -> (docname, objtype, shortname)
+        'reflabels': {
+            # label -> (docname, targetid)
+            'dylan-apiindex': (name + DylanObjectsIndex.name,
+                               DylanObjectsIndex.name)
+        }
     }
     
     indices = [
@@ -327,7 +445,40 @@ class DylanDomain (Domain):
         pass
         
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
-        raise sphinx.environment.NoUri()
+        print ("** dylan resolve xref, type '{}', target '{}', fromdoc '{}', node '{!r}', contnode '{!r}'"
+               .format(typ, target, fromdocname, node, contnode)) ##**
+        if typ == 'ref':
+            nodeargs = self.data['refnodes'].get(target, None)
+            if nodeargs is not None:
+                todocname = nodeargs[0]
+                targetid = nodeargs[1]
+                return make_refnode(builder, fromdocname, todocname, targetid, contnode)
+
+        if typ == 'meth':
+            return None # Fill in these.
+
+        if typ in ['lib', 'mod', 'class', 'var', 'const', 'func', 'gf', 'macro']:
+            print "** temp data {!r}".format(env.temp_data) ##**
+            colons = target.count(':')
+            fulltarget = None
+            # TODO: temp_data is empty by the time this code happens. Find another
+            # way to get current module and library.
+            if colons == 2:
+                fulltarget = target
+            elif colons == 1:
+                library = env.temp_data.get('dylan:library', None)
+                if library is not None:
+                    fulltarget = "{}:{}".format(library, target)
+            elif colons == 0:
+                module = env.temp_data.get('dylan:module', None)
+                if module is not None:
+                    fulltarget = "{}:{}".format(module, target)
+            nodeargs = self.data['objects'].get(fulltarget, None)
+            if nodeargs is not None:
+                todocname = nodeargs[0]
+                return make_refnode(builder, fromdocname, todocname, target, contnode)
+
+        return None    
     
     def get_objects(self):
         for kv in self.data['objects'].iteritems():
@@ -335,7 +486,7 @@ class DylanDomain (Domain):
             yield (fullname, shortname, objtype, docname, fullname, 0)
         
     def get_type_name(self, type, primary=False):
-        return super().get_type_name(type, primary)
+        return super(DylanDomain, self).get_type_name(type, primary)
     
     
 def setup (app):
