@@ -48,6 +48,12 @@ Configurables
 Library, module, and binding documentation
 ==========================================
 
+The Dylan domain generates an API index in a file called
+``dylan-apiindex.html``. Unfortunately, you have to link to it by filename, e.g.
+::
+
+  * `API Index <dylan-apiindex.html>`_
+
 
 Directives with content
 -----------------------
@@ -80,9 +86,9 @@ Directives with content
    A class.
 
    :Syntax:       ``.. dylan:class:: NAME``
-   :Arguments:    `:open:`_, `:primary:`_, `:abstract:`_, `:library:`_,
-                  `:module:`_
-   :Doc Fields:   `:supers:`_, `:keyword:`_
+   :Arguments:    `:open:`_, `:sealed:`_, `:primary:`_, `:free:`_, `:abstract:`_,
+                  `:concrete:`_, `:library:`_, `:module:`_
+   :Doc Fields:   `:supers:`_, `:keyword:`_, `:slot:`_
    :Reference:    `:dylan:class:`_
 
    Example::
@@ -103,7 +109,7 @@ Directives with content
    A generic function.
    
    :Syntax:       ``.. dylan:generic-function:: NAME``
-   :Arguments:    `:sealed:`_, `:library:`_, `:module:`_
+   :Arguments:    `:open:`_, `:sealed:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_
    :Reference:    `:dylan:gf:`_
    
@@ -232,7 +238,7 @@ the directive and any directive arguments by a blank line.
    A superclass of a class. This doc field may appear multiple times.
    
    :Syntax:    ``:supers: DESCRIPTION``
-   :Synonyms:  ``:superclasses:``
+   :Synonyms:  ``:superclasses:``, ``:super:``, ``:superclass:``
 
 ``:keyword:``
 ^^^^^^^^^^^^^
@@ -243,6 +249,14 @@ the directive and any directive arguments by a blank line.
    :Synonyms:  ``:init-keyword:``
    
    See `dylan:class::`_ for an example.
+
+``:slot:``
+^^^^^^^^^^
+
+   A slot of a class. This doc field may appear multiple times.
+   
+   :Syntax:    ``:slot NAME: DESCRIPTION``
+   :Synonyms:  ``:getter:``
 
 ``:param:``
 ^^^^^^^^^^^
@@ -295,16 +309,18 @@ blank lines.
 ``:library:``
 ^^^^^^^^^^^^^
 
-   Sets the current library for a directive. Mostly for automatically-generated
-   documentation; hand-written documentation can use `dylan:current-library::`_.
+   Sets the current library, also affecting documentation following the
+   directive. Mostly for automatically-generated documentation; hand-written
+   documentation can use `dylan:current-library::`_.
    
    :Syntax: ``:library: NAME``
 
 ``:module:``
 ^^^^^^^^^^^^^
 
-   Sets the current module for a directive. Mostly for automatically-generated
-   documentation; hand-written documentation can use `dylan:current-module::`_.
+   Sets the current module, also affecting documentation following the
+   directive. Mostly for automatically-generated documentation; hand-written
+   documentation can use `dylan:current-module::`_.
    
    :Syntax: ``:module: NAME``
 
@@ -322,7 +338,7 @@ blank lines.
 ``:open:``
 ^^^^^^^^^^
 
-   Indicates an open class.
+   Indicates an open class or generic function.
    
    :Syntax: ``:open:``
 
@@ -333,6 +349,13 @@ blank lines.
    
    :Syntax: ``:primary:``
 
+``:free:``
+^^^^^^^^^^
+   
+   Indicates a free class.
+   
+   :Syntax: ``:free:``
+
 ``:abstract:``
 ^^^^^^^^^^^^^^
 
@@ -340,12 +363,20 @@ blank lines.
    
    :Syntax: ``:abstract:``
 
+``:concrete:``
+^^^^^^^^^^^^^^
+   
+   Indicates a concrete class.
+   
+   :Syntax: ``:concrete:``
+
 ``:sealed:``
 ^^^^^^^^^^^^
 
-   Indicates a sealed generic function.
+   Indicates a sealed generic function or class.
    
    :Syntax: ``:sealed:``
+
 
 Roles
 -----
@@ -411,6 +442,9 @@ Roles
    - You may omit *LIBRARY* or *MODULE* to use the current library or module.
    - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` to only
      show the *NAME* and *SPECIALIZER* parts of the identifier, or both.
+
+.. note:: Syntax 1 does not actually work. But give it a title or mark, and it
+   should be okay.
 
 ``:dylan:func:``
 ^^^^^^^^^^^^^^^^

@@ -70,23 +70,65 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
 #
 
 
+def get_current_library (env):
+    return env.temp_data.get('dylan:library', None)
+
+def set_current_library (env, library):
+    env.temp_data['dylan:library'] = library
+
+def get_current_module (env):
+    return env.temp_data.get('dylan:module', None)
+
+def set_current_module (env, module):
+    env.temp_data['dylan:module'] = module
+
+
+def library_fullname (env, library):
+    return library
+
+def module_fullname (env, module, library=None):
+    library = library or get_current_library(env)
+    if library is None:
+        raise ValueError('No current library')
+    return "{}:{}".format(library, module)
+
+def binding_fullname (env, binding, library=None, module=None):
+    library = library or get_current_library(env)
+    module = module or get_current_module(env)
+    if library is None:
+        raise ValueError('No current library')
+    if module is None:
+        raise ValueError('No current module')
+    return "{}:{}:{}".format(library, module, binding)
+
+def fullname_parts (fullname):
+    parts = fullname.split(':')
+    if len(parts) == 3:
+        return (parts[0], parts[1], parts[2])
+    elif len(parts) == 2:
+        return (parts[0], parts[1], None)
+    elif len(parts) == 1 and parts[0] != '':
+        return (parts[0], None, None)
+    else:
+        return (None, None, None)
+
+
+def name_to_id (name):
+    return name.replace(' ', '').replace('<', '[').replace('>', ']')
+
+
 class DylanCurrentLibrary (Directive):
     """Sets up current library."""
     
     has_content = False
     required_arguments = 1
     optional_arguments = 0
+    final_argument_whitespace = False
     
-    def get_library_fullname (self, partial):
-        return partial
-        
-    def set_current_library (self, library_tuple):
-        env = self.state.document.settings.env
-        env.temp_data['dylan:library'] = library_tuple[0]
-
     def run (self):
-        name = self.get_library_fullname(self.arguments[0].strip())
-        self.set_current_library(name)
+        env = self.state.document.settings.env
+        name = self.arguments[0].strip()
+        set_current_library(env, name)
         return []
     
 
@@ -96,21 +138,12 @@ class DylanCurrentModule (Directive):
     has_content = False
     required_arguments = 1
     optional_arguments = 0
+    final_argument_whitespace = False
     
-    def get_module_fullname (self, partial):
-        env = self.state.document.settings.env
-        library = env.temp_data.get('dylan:library', None)
-        if library is None:
-            raise ValueError('No current library')
-        return "{}:{}".format(library, partial)
-
-    def set_current_module (self, module_tuple):
-        env = self.state.document.settings.env
-        env.temp_data['dylan:module'] = module_tuple[0]
-
     def run (self):
-        name = self.get_module_fullname(self.arguments[0].strip())
-        self.set_current_module(name)
+        env = self.state.document.settings.env
+        name = self.arguments[0].strip()
+        set_current_module(env, name)
         return []
 
 
@@ -121,14 +154,50 @@ class DylanDescDirective (DescDirective):
         'synopsis': DIRECTIVES.unchanged,
     }.items())
     
+    display_name = None
+    """
+    Subclasses should set this to a string describing the type of language
+    element they are.
+    """
+    
+    # It is not documented, but self.names is a series of tuples. Each tuple is
+    # the result of handle_signature on a signature. A signature is a directive
+    # argument; see get_signatures.
+
+    required_arguments = 1
+    optional_arguments = 0
+    final_argument_whitespace = False
+    
     def fullname (self, partial):
-        """Subclasses return the full, qualified name of this language element."""
-        pass
+        """
+        Subclasses return the full, qualified name of this language element,
+        including specializer.
+        """
+        return partial
+    
+    def annotations (self):
+        """
+        Subclasses return an iterable of strings annotating the language element,
+        e.g. 'open', 'sealed'.
+        """
+        return []
     
     def handle_signature (self, sigs, signode):
         partial = sigs.strip()
         fullname = self.fullname(partial)
-        signode += SPHINX_NODES.desc_name(partial, partial)
+        annotations = self.annotations()
+
+        # Language element name
+        (library, module, binding) = fullname_parts(fullname)
+        dispname = binding or module or library
+        signode += SPHINX_NODES.desc_name(dispname, dispname)
+        
+        # Annotations
+        annotations.append(self.display_name)
+        annotlist = ' '.join(annotations)
+        signode += RST_NODES.Text(' ')
+        signode += SPHINX_NODES.desc_annotation(annotlist, annotlist)
+        
         signode['fullname'] = fullname
         return (fullname, partial)
     
@@ -136,77 +205,117 @@ class DylanDescDirective (DescDirective):
         # note target
         fullname = name_tuple[0]
         shortname = name_tuple[1]
-        if fullname not in self.state.document.ids:
+        fullid = name_to_id(fullname)
+        if fullid not in self.state.document.ids:
             signode['names'].append(fullname)
-            signode['ids'].append(fullname)
+            signode['ids'].append(fullid)
             signode['first'] = (not self.names)
             self.state.document.note_explicit_target(signode)
             inventory = self.env.domaindata['dylan']['objects']
-            if fullname in inventory:
+            if fullid in inventory:
                 self.state_machine.reporter.warning(
                     'Duplicate description of Dylan {} {}, other instance in {}'
                         .format(self.objtype, fullname,
-                                self.env.doc2path(inventory[fullname][0])),
+                                self.env.doc2path(inventory[fullid][0])),
                     line=self.lineno)
-            inventory[fullname] = (self.env.docname, self.objtype, shortname)
+            inventory[fullid] = (self.env.docname, self.objtype,
+                                 fullname, shortname, self.display_name)
 
         # add index
-        self.indexnode['entries'].append(('single', shortname, fullname, ''))
+        (library, module, binding) = fullname_parts(fullname)
+        indexname = unicode(binding or module or library)
+        self.indexnode['entries'].append(('single', indexname, fullid, ''))
 
     
-class DylanLibraryDesc (DylanDescDirective, DylanCurrentLibrary):
+class DylanLibraryDesc (DylanDescDirective):
     """A Dylan library."""
 
-    fullname = DylanCurrentLibrary.get_library_fullname
-    
+    display_name = "library"
+
+    def fullname (self, partial):
+        env = self.state.document.settings.env
+        return library_fullname(env, partial)
+
     def before_content (self):
-        self.set_current_library(self.names[0])
+        env = self.state.document.settings.env
+        if len(self.names) > 0 and len(self.names[0]) > 0:
+            (lib, mod, bind) = fullname_parts(self.names[0][0])
+            set_current_library(env, lib)
 
         
-class DylanModuleDesc (DylanDescDirective, DylanCurrentModule):
+class DylanModuleDesc (DylanDescDirective):
     """A Dylan module."""
 
+    display_name = "module"
+    
     option_spec = dict(DylanDescDirective.option_spec.items() + {
-        'library': DIRECTIVES.unchanged, # Replace with something that sets local libary.
+        'library': DIRECTIVES.unchanged,
     }.items())
 
-    fullname = DylanCurrentModule.get_module_fullname
+    def fullname (self, partial):
+        env = self.state.document.settings.env
+        library_option = self.options.get('library', None)
+        return module_fullname(env, partial, library=library_option)
     
     def before_content (self):
-        self.set_current_module(self.names[0])
+        env = self.state.document.settings.env
+        if len(self.names) > 0 and len(self.names[0]) > 0:
+            (lib, mod, bind) = fullname_parts(self.names[0][0])
+            set_current_library(env, lib)
+            set_current_module(env, mod)
 
 
 class DylanBindingDesc (DylanDescDirective):
     """A Dylan binding."""
     
     option_spec = dict(DylanDescDirective.option_spec.items() + {
-        'library': DIRECTIVES.unchanged, # TODO: Replace with directive-local libary setter.
-        'module': DIRECTIVES.unchanged, # TODO: Replace with directive-local module setter.
+        'library': DIRECTIVES.unchanged,
+        'module': DIRECTIVES.unchanged,
     }.items())
 
     def fullname (self, partial):
         env = self.state.document.settings.env
-        module = env.temp_data.get('dylan:module', None)
-        if module is None:
-            raise ValueError('No current library or module')
-        return "{}:{}".format(module, partial)
+        library_option = self.options.get('library', None)
+        module_option = self.options.get('module', None)
+        return binding_fullname(env, partial, library=library_option, module=module_option)
+    
+    def before_content (self):
+        env = self.state.document.settings.env
+        if len(self.names) > 0 and len(self.names[0]) > 0:
+            (lib, mod, bind) = fullname_parts(self.names[0][0])
+            set_current_library(env, lib)
+            set_current_module(env, mod)
 
 
 class DylanClassDesc (DylanBindingDesc):
     """A Dylan class."""
 
+    display_name = "class"
+    
     option_spec = dict(DylanBindingDesc.option_spec.items() + {
         'open': DIRECTIVES.flag,
         'primary': DIRECTIVES.flag,
+        'free': DIRECTIVES.flag,
         'abstract': DIRECTIVES.flag,
+        'sealed': DIRECTIVES.flag,
+        'concrete': DIRECTIVES.flag,
     }.items())
 
     doc_field_types = [
-        Field('superclasses', label="Superclasses",
-            names=('supers', 'superclasses', )),
+        Field('superclasses', label="Superclasses", has_arg=False,
+            names=('supers', 'superclasses', 'super', 'superclass')),
         GroupedField('keyword', label="Init-Keywords",
-            names=('keyword', 'init-keyword'))
+            names=('keyword', 'init-keyword')),
+        GroupedField('slots', label="Slots",
+            names=('slot', 'getter'))
     ] + DylanBindingDesc.doc_field_types
+    
+    def annotations (self):
+        annotations = []
+        for key in ['open', 'primary', 'free', 'abstract', 'sealed', 'concrete']:
+            if key in self.options:
+                annotations.append(key)
+        return annotations
 
 
 class DylanFunctionDesc (DylanBindingDesc):
@@ -223,22 +332,40 @@ class DylanFunctionDesc (DylanBindingDesc):
 class DylanGenFuncDesc (DylanFunctionDesc):
     """A Dylan generic function."""
 
+    display_name = "generic function"
+    
     option_spec = dict(DylanFunctionDesc.option_spec.items() + {
         'sealed': DIRECTIVES.flag,
+        'open': DIRECTIVES.flag
     }.items())
+    
+    def annotations (self):
+        annotations = []
+        for key in ['sealed', 'open']:
+            if key in self.options:
+                annotations.append(key)
+        return annotations
 
 
 class DylanMethodDesc (DylanFunctionDesc):
     """A Dylan method in a generic function."""
 
+    display_name = "method"
+    
     option_spec = dict(DylanFunctionDesc.option_spec.items() + {
-        'specializer': DIRECTIVES.unchanged, # Do something with this.
+        'specializer': DIRECTIVES.unchanged,
     }.items())
+    
+    def fullname (self, partial):
+        basename = super(DylanMethodDesc, self).fullname(partial)
+        specializer = self.options['specializer']
+        return "{}({})".format(basename, specializer)
 
 
 class DylanConstFuncDesc (DylanFunctionDesc):
     """A Dylan function not associated with a generic function."""
-    pass
+
+    display_name = "function"
 
 
 class DylanConstOrVarDesc (DylanBindingDesc):
@@ -254,16 +381,20 @@ class DylanConstOrVarDesc (DylanBindingDesc):
 
 class DylanConstantDesc (DylanConstOrVarDesc):
     """A Dylan constant."""
-    pass
+
+    display_name = "constant"
 
 
 class DylanVariableDesc (DylanConstOrVarDesc):
     """A Dylan variable."""
-    pass
+
+    display_name = "variable"
 
 
 class DylanMacroDesc (DylanBindingDesc):
     """A Dylan macro."""
+
+    display_name = "macro"
 
     doc_field_types = [
         TypedField('parameters', label="Parameters",
@@ -286,8 +417,11 @@ class DylanObjectsIndex (Index):
     
       tan (generic-function)
       format-out
-        io:format-out (generic-function)
-        system:cheap-io (function)
+        io:format-out:format-out (generic function)
+        system:cheap-io:format-out (function)
+      min
+        dylan:dylan:min(<integer>) (method)
+        dylan:dylan:min(<float>) (method)
     """
     
     name = "apiindex"
@@ -298,46 +432,68 @@ class DylanObjectsIndex (Index):
         # Dictionary of first letter -> array of entry records with that letter
         content = {}
 
-        # list of all objects, sorted by full name
+        # list of all objects, sorted by short name then by library/module name
         objects = sorted(self.domain.data['objects'].iteritems(),
-                         key=lambda kv: "{} {}".format(kv[1][2].lower(), kv[0].lower()))
+                         key=lambda kv: "{} {}".format(kv[1][3], kv[1][2]).lower())
 
         # Add entries
         prev_shortname = ''
+        prev_fullname = ''
         num_toplevels = 0
-        for fullname, (docname, objtype, shortname) in objects:
+        for (fullid, (docname, objtype, fullname, shortname, displaytype)) in objects:
             if docnames and docname not in docnames:
                 continue
 
-            entries = content.setdefault(shortname[0].lower(), [])
+            # Find index character; omit leading non-alphanumerics.
+            indexchar = None
+            for char in shortname:
+                if (char.isalnum()):
+                    indexchar = char.upper()
+                    break;
+            indexchar = indexchar or shortname[0].upper()
 
+            entries = content.setdefault(indexchar, [])
+
+            # Use the last part of the full name in the index,
+            # i.e. short name + specializer
             subtype = 0;
+            (library, module, binding) = fullname_parts(fullname)
+            indexname = binding or module or library
+            
             if prev_shortname == shortname:
-                if len(entries) > 0 and entries[-1][1] == 0:
-                    # First subentry. Replace previous entry with an unlinked header.
-                    prev_entry = entries[-1]
+                # We have a duplicate name
+                prev_entry = entries[-1]
+                if prev_entry[1] == 0:
+                    # Previous entry was a normal entry, so this is the first
+                    # subentry. Replace previous entry with an unlinked header.
                     entries[-1] = [shortname, 1, "", "", "", "", ""]
-                    # Duplicate previous entry as the first subentry, but use
-                    # library and module instead of short name.
-                    prev_fullname = prev_entry[3]
-                    prev_entry[0] = prev_fullname.split(":")[0:-1]
+                    
+                    # Previous entry is now a header, so add the linkable original
+                    # as the first subentry, but use the full name instead of the
+                    # index name.
+                    prev_entry[0] = prev_fullname
                     prev_entry[1] = 2
                     entries.append(prev_entry)
-                # Make the entry we are creating into a subentry.
-                shortname = fullname.split(":")[0:-1]
+
+                # Make the entry we are creating into a subentry and use the
+                # whole full name instead of just the last part.
                 subtype = 2
+                indexname = fullname
+
             else:
+                # Keep track of how many top-level entries we have.
                 num_toplevels += 1
 
-            entries.append([shortname, subtype, docname, fullname,
-                            objtype, "", ""])
+            entries.append([indexname, subtype, docname, fullid, displaytype, "", ""])
+            prev_shortname = shortname
+            prev_fullname = fullname
 
         # apply heuristics as to when to collapse index at page load:
         # only collapse if number of top level entries is larger than
         # number of subentries
         collapse = len(content) - num_toplevels < num_toplevels
 
-        # sort by first letter
+        # sort by index character
         content = sorted(content.iteritems())
 
         return (content, collapse)
@@ -348,23 +504,33 @@ class DylanObjectsIndex (Index):
 #
 
 
+class DylanXRefRole (XRefRole):
+    def process_link (self, env, refnode, has_explicit_title, title, target):
+        """Stash the current library and module for later lookup."""
+        refnode.dylan_curlibrary = get_current_library(env)
+        refnode.dylan_curmodule = get_current_module(env)
+        return (title, target)
+
+
 def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
-    match = RE.match(r'^(\S+)$|^(.*) <(\S+)>$', text)
+    """
+    Rebuild rawtext and text to avoid default escaping/parsing behavior. We
+    use [] instead of <> in targets.
+    """
+    match = RE.match(r'^(.+?) <(.+)>$|^(.+)$', text)
     if match:
-        linkkey1, linktitle, linkkey2 = match.groups()
+        linktitle, linkkey1, linkkey2 = match.groups()
         linkkey = (linkkey1 or linkkey2)
-        esc_linkkey = linkkey.replace("<", r"\<").replace(">", r"\>")
-        if linktitle:
-            esc_linktitle = linktitle.replace("<", r"\<").replace(">", r"\>")
+        if linktitle is None:
+            keyparts = linkkey.split(':')
+            linktitle = keyparts[-1]
         
-        if linktitle:
-            new_text = "{} <{}>".format(linktitle, linkkey)
-            new_rawtext = ":{}:`{} <{}>`".format(name, esc_linktitle, esc_linkkey)
-        else:
-            new_text = "{}".format(linkkey)
-            new_rawtext = ":{}:`<{}>`".format(name, esc_linkkey)
+        esc_linktitle = linktitle.replace("<", r"\<").replace(">", r"\>")
+        targ_linkkey = name_to_id(linkkey)
+        new_text = "{} <{}>".format(linktitle, targ_linkkey)
+        new_rawtext = ":{}:`{} <{}>`".format(name, esc_linktitle, targ_linkkey)
         
-        do_xref = XRefRole()
+        do_xref = DylanXRefRole()
         return do_xref(name, new_rawtext, new_text, lineno, inliner, options, context)
     else:
         msg = inliner.reporter.error(
@@ -424,7 +590,9 @@ class DylanDomain (Domain):
     }
     
     initial_data = {
-        'objects': {},      # fullname -> (docname, objtype, shortname)
+        'objects': {},
+            # fullid -> (docname, objtype, fullname, shortname, displaytype)
+            # fullid is fullname with <> replaced by [] and spaces removed
         'reflabels': {
             # label -> (docname, targetid)
             'dylan-apiindex': (name + DylanObjectsIndex.name,
@@ -445,8 +613,6 @@ class DylanDomain (Domain):
         pass
         
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
-        print ("** dylan resolve xref, type '{}', target '{}', fromdoc '{}', node '{!r}', contnode '{!r}'"
-               .format(typ, target, fromdocname, node, contnode)) ##**
         if typ == 'ref':
             nodeargs = self.data['refnodes'].get(target, None)
             if nodeargs is not None:
@@ -454,39 +620,36 @@ class DylanDomain (Domain):
                 targetid = nodeargs[1]
                 return make_refnode(builder, fromdocname, todocname, targetid, contnode)
 
-        if typ == 'meth':
-            return None # Fill in these.
-
-        if typ in ['lib', 'mod', 'class', 'var', 'const', 'func', 'gf', 'macro']:
-            print "** temp data {!r}".format(env.temp_data) ##**
+        if typ in ['lib', 'mod', 'class', 'var', 'const', 'func', 'gf', 'meth', 'macro']:
+            # Target will have been transformed to the standard ID format:
+            # no spaces and <> changed to []. Additionally, the node will have
+            # dylan_curlibrary and dylan_curmodule set. This is all done by
+            # the role processing function and the DylanXRefRole class.
             colons = target.count(':')
             fulltarget = None
-            # TODO: temp_data is empty by the time this code happens. Find another
-            # way to get current module and library.
+            library = node.dylan_curlibrary
+            module = node.dylan_curmodule
             if colons == 2:
                 fulltarget = target
-            elif colons == 1:
-                library = env.temp_data.get('dylan:library', None)
-                if library is not None:
-                    fulltarget = "{}:{}".format(library, target)
-            elif colons == 0:
-                module = env.temp_data.get('dylan:module', None)
-                if module is not None:
-                    fulltarget = "{}:{}".format(module, target)
+            elif library is not None:
+                library_id = name_to_id(library)
+                if colons == 1:
+                    fulltarget = "{}:{}".format(library_id, target)
+                elif module is not None:
+                    module_id = name_to_id(module)
+                    if colons == 0:
+                        fulltarget = "{}:{}:{}".format(library_id, module_id, target)
             nodeargs = self.data['objects'].get(fulltarget, None)
             if nodeargs is not None:
                 todocname = nodeargs[0]
-                return make_refnode(builder, fromdocname, todocname, target, contnode)
+                return make_refnode(builder, fromdocname, todocname, fulltarget, contnode)
 
         return None    
     
     def get_objects(self):
         for kv in self.data['objects'].iteritems():
-            (fullname, (docname, objtype, shortname)) = kv
-            yield (fullname, shortname, objtype, docname, fullname, 0)
-        
-    def get_type_name(self, type, primary=False):
-        return super(DylanDomain, self).get_type_name(type, primary)
+            (fullid, (docname, objtype, fullname, shortname, displaytype)) = kv
+            yield (fullname, shortname, objtype, docname, fullid, 0)
     
     
 def setup (app):
