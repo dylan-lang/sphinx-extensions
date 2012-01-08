@@ -607,7 +607,9 @@ class DylanDomain (Domain):
     drm_index = None
     
     def clear_doc(self, docname):
-        pass
+        for fullid, (objects_docname, _, _, _, _) in self.data['objects'].items():
+            if objects_docname == docname:
+                del self.data['objects'][fullid]
     
     def process_doc(self, env, docname, document):
         pass

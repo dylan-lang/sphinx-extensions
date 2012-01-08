@@ -123,9 +123,6 @@ Directives with content
          :param #key test:    An instance of `<function>`:class:. The default is
                               `==`:gf:.
          :value bool:         An instance of `<boolean>`:class:.
-      
-      .. method::
-         :specializer: <object>, <range>
 
 ``dylan:method::``
 ^^^^^^^^^^^^^^^^^^
@@ -136,10 +133,6 @@ Directives with content
    :Arguments:    `:specializer:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_
    :Reference:    `:dylan:meth:`_
-   
-   After a generic function, *NAME* and all doc fields may be omitted. The name
-   and arguments of the generic function will be used. See
-   `dylan:generic-function::`_ for an example of this.
    
    References to a method must be disambiguated by enclosing *SPECIALIZER* in
    parentheses, as shown by the reference to ``type-for-copy`` in the following
@@ -384,7 +377,7 @@ Roles
    All cross-referencing roles except `:dylan:meth:`_ have the same syntax. This
    syntax is similar to the syntax of cross-referencing roles for other
    languages, but if you use the ``!`` or ``~`` marks, you must enclose the
-   target in ``< >``.
+   target in ``< >``, and the ``~`` mark does not have any effect.
    
    :Syntax 1: ``:dylan:role:`LIBRARY:MODULE:NAME```
    :Syntax 2: ``:dylan:role:`TEXT <LIBRARY:MODULE:NAME>```
@@ -392,8 +385,8 @@ Roles
    :Syntax 4: ``:dylan:role:`MARK TEXT <LIBRARY:MODULE:NAME>```
    
    - You may omit *LIBRARY* or *MODULE* to use the current library or module.
-   - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` to only show the
-     *NAME* part of the identifier, or both.
+   - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` which does not
+     have an effect at the moment.
      
    Examples::
    
@@ -440,8 +433,8 @@ Roles
    - The *SPECIALIZER* component matches a method directive's `:specializer:`_
      argument.
    - You may omit *LIBRARY* or *MODULE* to use the current library or module.
-   - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` to only
-     show the *NAME* and *SPECIALIZER* parts of the identifier, or both.
+   - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` which does not
+     have an effect at the moment.
 
 .. note:: Syntax 1 does not actually work. But give it a title or mark, and it
    should be okay.
