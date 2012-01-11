@@ -59,7 +59,7 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
     else:
         msg = inliner.reporter.error(
             'Invalid syntax for :dylan:drm: role; '
-            '`{}` should be like `ref` or `text <ref>`.'.format(text),
+            '`{0}` should be like `ref` or `text <ref>`.'.format(text),
             line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
@@ -89,17 +89,17 @@ def library_fullname (env, library):
 def module_fullname (env, module, library=None):
     library = library or get_current_library(env)
     if library is None:
-        raise ValueError('No current library')
-    return "{}:{}".format(library, module)
+        raise ValueError('No current library for module {0}'.format(module))
+    return "{0}:{1}".format(library, module)
 
 def binding_fullname (env, binding, library=None, module=None):
     library = library or get_current_library(env)
     module = module or get_current_module(env)
     if library is None:
-        raise ValueError('No current library')
+        raise ValueError('No current library for binding {0}'.format(binding))
     if module is None:
-        raise ValueError('No current module')
-    return "{}:{}:{}".format(library, module, binding)
+        raise ValueError('No current module for binding {0}'.format(binding))
+    return "{0}:{1}:{2}".format(library, module, binding)
 
 def fullname_parts (fullname):
     parts = fullname.split(':')
@@ -214,7 +214,7 @@ class DylanDescDirective (DescDirective):
             inventory = self.env.domaindata['dylan']['objects']
             if fullid in inventory:
                 self.state_machine.reporter.warning(
-                    'Duplicate description of Dylan {} {}, other instance in {}'
+                    'Duplicate description of Dylan {0} {1}, other instance in {2}'
                         .format(self.objtype, fullname,
                                 self.env.doc2path(inventory[fullid][0])),
                     line=self.lineno)
@@ -225,6 +225,11 @@ class DylanDescDirective (DescDirective):
         (library, module, binding) = fullname_parts(fullname)
         indexname = unicode(binding or module or library)
         self.indexnode['entries'].append(('single', indexname, fullid, ''))
+    
+    def report_and_raise_error (self, error):
+        src, srcline = self.state.state_machine.get_source_and_line()
+        msg = self.state.reporter.warning(error.args[0], line=srcline)
+        raise error
 
     
 class DylanLibraryDesc (DylanDescDirective):
@@ -234,7 +239,10 @@ class DylanLibraryDesc (DylanDescDirective):
 
     def fullname (self, partial):
         env = self.state.document.settings.env
-        return library_fullname(env, partial)
+        try:
+            return library_fullname(env, partial)
+        except ValueError as ve:
+            self.report_and_raise_error(ve)
 
     def before_content (self):
         env = self.state.document.settings.env
@@ -255,7 +263,10 @@ class DylanModuleDesc (DylanDescDirective):
     def fullname (self, partial):
         env = self.state.document.settings.env
         library_option = self.options.get('library', None)
-        return module_fullname(env, partial, library=library_option)
+        try:
+            return module_fullname(env, partial, library=library_option)
+        except ValueError as ve:
+            self.report_and_raise_error(ve)
     
     def before_content (self):
         env = self.state.document.settings.env
@@ -277,7 +288,11 @@ class DylanBindingDesc (DylanDescDirective):
         env = self.state.document.settings.env
         library_option = self.options.get('library', None)
         module_option = self.options.get('module', None)
-        return binding_fullname(env, partial, library=library_option, module=module_option)
+        try:
+            return binding_fullname(env, partial,
+                    library=library_option, module=module_option)
+        except ValueError as ve:
+            self.report_and_raise_error(ve)
     
     def before_content (self):
         env = self.state.document.settings.env
@@ -299,6 +314,8 @@ class DylanClassDesc (DylanBindingDesc):
         'abstract': DIRECTIVES.flag,
         'sealed': DIRECTIVES.flag,
         'concrete': DIRECTIVES.flag,
+        'instantiable': DIRECTIVES.flag,
+        'uninstantiable': DIRECTIVES.flag
     }.items())
 
     doc_field_types = [
@@ -312,7 +329,8 @@ class DylanClassDesc (DylanBindingDesc):
     
     def annotations (self):
         annotations = []
-        for key in ['open', 'primary', 'free', 'abstract', 'sealed', 'concrete']:
+        for key in ['open', 'primary', 'free', 'abstract', 'sealed', 'concrete',
+                    'instantiable', 'uninstantiable']:
             if key in self.options:
                 annotations.append(key)
         return annotations
@@ -325,7 +343,9 @@ class DylanFunctionDesc (DylanBindingDesc):
         TypedField('parameters', label="Parameters",
             names=('param', 'parameter', 'arg', 'argument')),
         GroupedField('values', label="Values",
-            names=('value', 'val', 'retval', 'return'))
+            names=('value', 'val', 'retval', 'return')),
+        Field('signature', label="Signature", has_arg=False,
+            names=('sig', 'signature'))
     ] + DylanBindingDesc.doc_field_types
 
 
@@ -359,7 +379,7 @@ class DylanMethodDesc (DylanFunctionDesc):
     def fullname (self, partial):
         basename = super(DylanMethodDesc, self).fullname(partial)
         specializer = self.options['specializer']
-        return "{}({})".format(basename, specializer)
+        return "{0}({1})".format(basename, specializer)
 
 
 class DylanConstFuncDesc (DylanFunctionDesc):
@@ -400,7 +420,9 @@ class DylanMacroDesc (DylanBindingDesc):
         TypedField('parameters', label="Parameters",
             names=('param', 'parameter', 'arg', 'argument')),
         GroupedField('values', label="Values",
-            names=('value', 'val', 'retval', 'return'))
+            names=('value', 'val', 'retval', 'return')),
+        Field('call', label="Macro Call", has_arg=False,
+            names=('call', 'macrocall', 'syntax'))
     ] + DylanBindingDesc.doc_field_types
 
 
@@ -434,7 +456,7 @@ class DylanObjectsIndex (Index):
 
         # list of all objects, sorted by short name then by library/module name
         objects = sorted(self.domain.data['objects'].iteritems(),
-                         key=lambda kv: "{} {}".format(kv[1][3], kv[1][2]).lower())
+                         key=lambda kv: "{0} {1}".format(kv[1][3], kv[1][2]).lower())
 
         # Add entries
         prev_shortname = ''
@@ -527,15 +549,15 @@ def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
         
         esc_linktitle = linktitle.replace("<", r"\<").replace(">", r"\>")
         targ_linkkey = name_to_id(linkkey)
-        new_text = "{} <{}>".format(linktitle, targ_linkkey)
-        new_rawtext = ":{}:`{} <{}>`".format(name, esc_linktitle, targ_linkkey)
+        new_text = "{0} <{1}>".format(linktitle, targ_linkkey)
+        new_rawtext = ":{0}:`{1} <{2}>`".format(name, esc_linktitle, targ_linkkey)
         
         do_xref = DylanXRefRole()
         return do_xref(name, new_rawtext, new_text, lineno, inliner, options, context)
     else:
         msg = inliner.reporter.error(
-            'Invalid syntax for :{}: role; '
-            '`{}` should be like `ref` or `text <ref>`.'.format(name, text),
+            'Invalid syntax for :{0}: role; '
+            '`{1}` should be like `ref` or `text <ref>`.'.format(name, text),
             line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
@@ -636,11 +658,11 @@ class DylanDomain (Domain):
             elif library is not None:
                 library_id = name_to_id(library)
                 if colons == 1:
-                    fulltarget = "{}:{}".format(library_id, target)
+                    fulltarget = "{0}:{1}".format(library_id, target)
                 elif module is not None:
                     module_id = name_to_id(module)
                     if colons == 0:
-                        fulltarget = "{}:{}:{}".format(library_id, module_id, target)
+                        fulltarget = "{0}:{1}:{2}".format(library_id, module_id, target)
             nodeargs = self.data['objects'].get(fulltarget, None)
             if nodeargs is not None:
                 todocname = nodeargs[0]

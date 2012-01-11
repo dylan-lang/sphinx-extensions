@@ -87,7 +87,8 @@ Directives with content
 
    :Syntax:       ``.. dylan:class:: NAME``
    :Arguments:    `:open:`_, `:sealed:`_, `:primary:`_, `:free:`_, `:abstract:`_,
-                  `:concrete:`_, `:library:`_, `:module:`_
+                  `:concrete:`_, `:instantiable:`_, `:uninstantiable:`_,
+                  `:library:`_, `:module:`_
    :Doc Fields:   `:supers:`_, `:keyword:`_, `:slot:`_
    :Reference:    `:dylan:class:`_
 
@@ -110,7 +111,7 @@ Directives with content
    
    :Syntax:       ``.. dylan:generic-function:: NAME``
    :Arguments:    `:open:`_, `:sealed:`_, `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_
    :Reference:    `:dylan:gf:`_
    
    Example::
@@ -131,7 +132,7 @@ Directives with content
    
    :Syntax:       ``.. dylan:method:: NAME``
    :Arguments:    `:specializer:`_, `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_
    :Reference:    `:dylan:meth:`_
    
    References to a method must be disambiguated by enclosing *SPECIALIZER* in
@@ -161,7 +162,7 @@ Directives with content
    
    :Syntax:       ``.. dylan:function:: NAME``
    :Arguments:    `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_
    :Reference:    `:dylan:func:`_
 
 ``dylan:constant::``
@@ -191,7 +192,7 @@ Directives with content
    
    :Syntax:       ``.. dylan:macro:: NAME``
    :Arguments:    `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:macrocall:`_
    :Reference:    `:dylan:macro:`_
 
 
@@ -292,6 +293,38 @@ the directive and any directive arguments by a blank line.
    :Syntax:    ``:value: EXPRESSION``
    :Synonyms:  ``:val:``
 
+``:signature:``
+^^^^^^^^^^^^^^^
+
+   The signature of a function.
+   
+   :Syntax:    ``:signature: TEXT``
+   :Synonyms:  ``:sig:``
+   
+   Example::
+   
+      .. function:: error
+         
+         :signature: ``error`` *condition* => *will never return*
+         :signature:
+            ``error`` *string* ``#rest`` *arguments* => *will never return*
+
+``:macrocall:``
+^^^^^^^^^^^^^^^
+
+   The syntax of a macro call.
+   
+   :Syntax:    ``:macrocall: BODY``
+   :Synonyms:  ``:call:``, ``:syntax:``
+   
+   Example::
+   
+      .. macro:: variable-definer
+         
+         :macrocall:
+            .. parsed-literal::
+               define { `adjective }* variable `variables` = `init`
+
 
 Directive arguments
 -------------------
@@ -369,6 +402,20 @@ blank lines.
    Indicates a sealed generic function or class.
    
    :Syntax: ``:sealed:``
+
+``:instantiable:``
+^^^^^^^^^^^^^^^^^^
+   
+   Indicates an instantiable class.
+   
+   :Syntax: ``:instantiable:``
+
+``:uninstantiable:``
+^^^^^^^^^^^^^^^^^^^^
+
+   Indicates an uninstantiable class.
+   
+   :Syntax: ``:uninstantiable:``
 
 
 Roles
