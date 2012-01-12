@@ -66,7 +66,7 @@ Directives with content
    
    :Syntax:       ``.. dylan:library:: NAME``
    :Options:      None
-   :Doc Fields:   `:discussion:`_
+   :Doc Fields:   `:summary:`_, `:discussion:`_
    :References:   `:dylan:lib:`_
 
 ``dylan:module::``
@@ -77,7 +77,7 @@ Directives with content
    
    :Syntax:       ``.. dylan:module:: NAME``
    :Options:      `:library:`_
-   :Doc Fields:   `:discussion:`_
+   :Doc Fields:   `:summary:`_, `:discussion:`_
    :References:   `:dylan:mod:`_
 
 ``dylan:class::``
@@ -89,8 +89,8 @@ Directives with content
    :Options:      `:open:`_, `:sealed:`_, `:primary:`_, `:free:`_, `:abstract:`_,
                   `:concrete:`_, `:instantiable:`_, `:uninstantiable:`_,
                   `:library:`_, `:module:`_
-   :Doc Fields:   `:supers:`_, `:keyword:`_, `:slot:`_, `:discussion:`_, 
-                  `:conditions:`_, `:operations:`_, `:example:`_
+   :Doc Fields:   `:supers:`_, `:keyword:`_, `:slot:`_, `:summary:`_, 
+                  `:discussion:`_, `:conditions:`_, `:operations:`_, `:example:`_
    :References:   `:dylan:class:`_
 
    Example::
@@ -112,8 +112,8 @@ Directives with content
    
    :Syntax:       ``.. dylan:generic-function:: NAME``
    :Options:      `:open:`_, `:sealed:`_, `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:discussion:`_,
-                  `:conditions:`_, `:example:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_, 
+                  `:discussion:`_, `:conditions:`_, `:example:`_
    :References:   `:dylan:gf:`_
    
    Example::
@@ -134,8 +134,8 @@ Directives with content
    
    :Syntax:       ``.. dylan:method:: NAME``
    :Options:      `:specializer:`_, `:sealed:`_, `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:discussion:`_,
-                  `:conditions:`_, `:example:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_, 
+                  `:discussion:`_, `:conditions:`_, `:example:`_
    :References:   `:dylan:meth:`_
    
    References to a method must be disambiguated by enclosing *SPECIALIZER* in
@@ -165,8 +165,8 @@ Directives with content
    
    :Syntax:       ``.. dylan:function:: NAME``
    :Options:      `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:discussion:`_,
-                  `:conditions:`_, `:example:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_, 
+                  `:discussion:`_, `:conditions:`_, `:example:`_
    :References:   `:dylan:func:`_
 
 ``dylan:constant::``
@@ -176,7 +176,8 @@ Directives with content
    
    :Syntax:       ``.. dylan:constant:: NAME``
    :Options:      `:library:`_, `:module:`_
-   :Doc Fields:   `:type:`_, `:value: (2)`_, `:discussion:`_, `:example:`_
+   :Doc Fields:   `:type:`_, `:value: (2)`_, `:summary:`_, `:discussion:`_,
+                  `:example:`_
    :References:   `:dylan:const:`_
 
 ``dylan:variable::``
@@ -186,7 +187,8 @@ Directives with content
    
    :Syntax:       ``.. dylan:variable:: NAME``
    :Options:      `:library:`_, `:module:`_
-   :Doc Fields:   `:type:`_, `:value: (2)`_, `:discussion:`_, `:example:`_
+   :Doc Fields:   `:type:`_, `:value: (2)`_, `:summary:`_, `:discussion:`_,
+                  `:example:`_
    :References:   `:dylan:var:`_
 
 ``dylan:macro::``
@@ -197,8 +199,8 @@ Directives with content
    :Syntax:       ``.. dylan:macro:: NAME``
    :Options:      `:statement:`_, `:function:`_, `:defining:`_,
                   `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_, `:macrocall:`_, `:discussion:`_,
-                  `:example:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:macrocall:`_, `:summary:`_, 
+                  `:discussion:`_, `:example:`_
    :References:   `:dylan:macro:`_
 
 
@@ -232,12 +234,12 @@ Directive doc fields
 Doc fields appear in the directive's content. Doc fields must be separated from
 the directive and any directive options by a blank line.
 
-``:example:``
+``:summary:``
 ^^^^^^^^^^^^^
 
-   An example of the use of a binding. This doc field may appear multiple times.
+   A brief summary of a Dylan language element.
    
-   :Syntax:    ``:example: EXAMPLE``
+   :Syntax:    ``:summary: DISCUSSION``
    :Synonyms:  None
 
 ``:discussion:``
@@ -247,6 +249,14 @@ the directive and any directive options by a blank line.
    
    :Syntax:    ``:discussion: DISCUSSION``
    :Synonyms:  ``:description:``
+
+``:example:``
+^^^^^^^^^^^^^
+
+   An example of the use of a binding. This doc field may appear multiple times.
+   
+   :Syntax:    ``:example: EXAMPLE``
+   :Synonyms:  None
 
 ``:supers:``
 ^^^^^^^^^^^^

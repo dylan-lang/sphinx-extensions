@@ -161,6 +161,8 @@ class DylanDescDirective (DescDirective):
     }.items())
     
     doc_field_types = [
+        Field('summary', label="Summary", has_arg=False,
+            names=('summary')),
         Field('discussion', label="Discussion", has_arg=False,
             names=('discussion', 'description')),
     ] + DescDirective.doc_field_types
