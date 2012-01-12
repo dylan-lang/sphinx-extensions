@@ -150,16 +150,21 @@ class DylanCurrentModule (Directive):
 class DylanDescDirective (DescDirective):
     """A documentable Dylan language object."""
 
-    option_spec = dict(DescDirective.option_spec.items() + {
-        'synopsis': DIRECTIVES.unchanged,
-    }.items())
-    
     display_name = None
     """
     Subclasses should set this to a string describing the type of language
     element they are.
     """
     
+    option_spec = dict(DescDirective.option_spec.items() + {
+        'synopsis': DIRECTIVES.unchanged,
+    }.items())
+    
+    doc_field_types = [
+        Field('discussion', label="Discussion", has_arg=False,
+            names=('discussion', 'description')),
+    ] + DescDirective.doc_field_types
+
     # It is not documented, but self.names is a series of tuples. Each tuple is
     # the result of handle_signature on a signature. A signature is a directive
     # argument; see get_signatures.
@@ -284,6 +289,11 @@ class DylanBindingDesc (DylanDescDirective):
         'module': DIRECTIVES.unchanged,
     }.items())
 
+    doc_field_types = [
+        Field('example', label="Example", has_arg=False,
+            names=('example')),
+    ] + DylanDescDirective.doc_field_types
+
     def fullname (self, partial):
         env = self.state.document.settings.env
         library_option = self.options.get('library', None)
@@ -324,9 +334,14 @@ class DylanClassDesc (DylanBindingDesc):
         GroupedField('keyword', label="Init-Keywords",
             names=('keyword', 'init-keyword')),
         GroupedField('slots', label="Slots",
-            names=('slot', 'getter'))
+            names=('slot', 'getter')),
+        Field('conditions', label="Conditions", has_arg=False,
+            names=('conditions', 'exceptions', 'condition', 'exception',
+                   'signals', 'throws')),
+        Field('operations', label="Operations", has_arg=False,
+            names=('operations', 'methods', 'functions')),
     ] + DylanBindingDesc.doc_field_types
-    
+   
     def annotations (self):
         annotations = []
         for key in ['open', 'primary', 'free', 'abstract', 'sealed', 'concrete',
@@ -341,11 +356,13 @@ class DylanFunctionDesc (DylanBindingDesc):
 
     doc_field_types = [
         TypedField('parameters', label="Parameters",
-            names=('param', 'parameter', 'arg', 'argument')),
+            names=('param', 'parameter')),
         GroupedField('values', label="Values",
             names=('value', 'val', 'retval', 'return')),
         Field('signature', label="Signature", has_arg=False,
-            names=('sig', 'signature'))
+            names=('sig', 'signature')),
+        Field('conditions', label="Conditions", has_arg=False,
+            names=('conditions', 'exceptions', 'signals', 'throws')),
     ] + DylanBindingDesc.doc_field_types
 
 
@@ -374,12 +391,20 @@ class DylanMethodDesc (DylanFunctionDesc):
     
     option_spec = dict(DylanFunctionDesc.option_spec.items() + {
         'specializer': DIRECTIVES.unchanged,
+        'sealed': DIRECTIVES.flag,
     }.items())
     
     def fullname (self, partial):
         basename = super(DylanMethodDesc, self).fullname(partial)
         specializer = self.options['specializer']
         return "{0}({1})".format(basename, specializer)
+
+    def annotations (self):
+        annotations = []
+        for key in ['sealed']:
+            if key in self.options:
+                annotations.append(key)
+        return annotations
 
 
 class DylanConstFuncDesc (DylanFunctionDesc):
@@ -416,14 +441,27 @@ class DylanMacroDesc (DylanBindingDesc):
 
     display_name = "macro"
 
+    option_spec = dict(DylanBindingDesc.option_spec.items() + {
+        'statement': DIRECTIVES.flag,
+        'function': DIRECTIVES.flag,
+        'defining': DIRECTIVES.flag
+    }.items())
+
     doc_field_types = [
         TypedField('parameters', label="Parameters",
-            names=('param', 'parameter', 'arg', 'argument')),
+            names=('param', 'parameter')),
         GroupedField('values', label="Values",
             names=('value', 'val', 'retval', 'return')),
         Field('call', label="Macro Call", has_arg=False,
             names=('call', 'macrocall', 'syntax'))
     ] + DylanBindingDesc.doc_field_types
+
+    def annotations (self):
+        annotations = []
+        for key in ['statement', 'function', 'defining']:
+            if key in self.options:
+                annotations.append(key)
+        return annotations
 
 
 #

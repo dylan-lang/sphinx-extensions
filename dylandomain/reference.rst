@@ -65,9 +65,9 @@ Directives with content
    after this directive, or elsewhere via `dylan:current-library::`_.
    
    :Syntax:       ``.. dylan:library:: NAME``
-   :Arguments:    None
-   :Doc Fields:   None
-   :Reference:    `:dylan:lib:`_
+   :Options:      None
+   :Doc Fields:   `:discussion:`_
+   :References:   `:dylan:lib:`_
 
 ``dylan:module::``
 ^^^^^^^^^^^^^^^^^^
@@ -76,9 +76,9 @@ Directives with content
    this directive, or elsewhere via `dylan:current-module::`_.
    
    :Syntax:       ``.. dylan:module:: NAME``
-   :Arguments:    `:library:`_
-   :Doc Fields:   None
-   :Reference:    `:dylan:mod:`_
+   :Options:      `:library:`_
+   :Doc Fields:   `:discussion:`_
+   :References:   `:dylan:mod:`_
 
 ``dylan:class::``
 ^^^^^^^^^^^^^^^^^
@@ -86,11 +86,12 @@ Directives with content
    A class.
 
    :Syntax:       ``.. dylan:class:: NAME``
-   :Arguments:    `:open:`_, `:sealed:`_, `:primary:`_, `:free:`_, `:abstract:`_,
+   :Options:      `:open:`_, `:sealed:`_, `:primary:`_, `:free:`_, `:abstract:`_,
                   `:concrete:`_, `:instantiable:`_, `:uninstantiable:`_,
                   `:library:`_, `:module:`_
-   :Doc Fields:   `:supers:`_, `:keyword:`_, `:slot:`_
-   :Reference:    `:dylan:class:`_
+   :Doc Fields:   `:supers:`_, `:keyword:`_, `:slot:`_, `:discussion:`_, 
+                  `:conditions:`_, `:operations:`_, `:example:`_
+   :References:   `:dylan:class:`_
 
    Example::
    
@@ -110,9 +111,10 @@ Directives with content
    A generic function.
    
    :Syntax:       ``.. dylan:generic-function:: NAME``
-   :Arguments:    `:open:`_, `:sealed:`_, `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_
-   :Reference:    `:dylan:gf:`_
+   :Options:      `:open:`_, `:sealed:`_, `:library:`_, `:module:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:discussion:`_,
+                  `:conditions:`_, `:example:`_
+   :References:   `:dylan:gf:`_
    
    Example::
    
@@ -131,9 +133,10 @@ Directives with content
    A method of a generic function.
    
    :Syntax:       ``.. dylan:method:: NAME``
-   :Arguments:    `:specializer:`_, `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_
-   :Reference:    `:dylan:meth:`_
+   :Options:      `:specializer:`_, `:sealed:`_, `:library:`_, `:module:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:discussion:`_,
+                  `:conditions:`_, `:example:`_
+   :References:   `:dylan:meth:`_
    
    References to a method must be disambiguated by enclosing *SPECIALIZER* in
    parentheses, as shown by the reference to ``type-for-copy`` in the following
@@ -161,9 +164,10 @@ Directives with content
    A function that does not belong to a generic function.
    
    :Syntax:       ``.. dylan:function:: NAME``
-   :Arguments:    `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_
-   :Reference:    `:dylan:func:`_
+   :Options:      `:library:`_, `:module:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:discussion:`_,
+                  `:conditions:`_, `:example:`_
+   :References:   `:dylan:func:`_
 
 ``dylan:constant::``
 ^^^^^^^^^^^^^^^^^^^^
@@ -171,9 +175,9 @@ Directives with content
    A constant.
    
    :Syntax:       ``.. dylan:constant:: NAME``
-   :Arguments:    `:library:`_, `:module:`_
-   :Doc Fields:   `:type:`_, `:value: (2)`_
-   :Reference:    `:dylan:const:`_
+   :Options:      `:library:`_, `:module:`_
+   :Doc Fields:   `:type:`_, `:value: (2)`_, `:discussion:`_, `:example:`_
+   :References:   `:dylan:const:`_
 
 ``dylan:variable::``
 ^^^^^^^^^^^^^^^^^^^^
@@ -181,9 +185,9 @@ Directives with content
    A variable.
    
    :Syntax:       ``.. dylan:variable:: NAME``
-   :Arguments:    `:library:`_, `:module:`_
-   :Doc Fields:   `:type:`_, `:value: (2)`_
-   :Reference:    `:dylan:var:`_
+   :Options:      `:library:`_, `:module:`_
+   :Doc Fields:   `:type:`_, `:value: (2)`_, `:discussion:`_, `:example:`_
+   :References:   `:dylan:var:`_
 
 ``dylan:macro::``
 ^^^^^^^^^^^^^^^^^
@@ -191,9 +195,11 @@ Directives with content
    A macro.
    
    :Syntax:       ``.. dylan:macro:: NAME``
-   :Arguments:    `:library:`_, `:module:`_
-   :Doc Fields:   `:param:`_, `:value: (1)`_, `:macrocall:`_
-   :Reference:    `:dylan:macro:`_
+   :Options:      `:statement:`_, `:function:`_, `:defining:`_,
+                  `:library:`_, `:module:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:macrocall:`_, `:discussion:`_,
+                  `:example:`_
+   :References:   `:dylan:macro:`_
 
 
 Directives without content
@@ -207,7 +213,7 @@ Directives without content
    library after this directive.
    
    :Syntax:    ``.. dylan:current-library:: LIBRARY``
-   :Arguments: None
+   :Options:   None
 
 ``dylan:current-module::``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -217,14 +223,30 @@ Directives without content
    after this directive.
 
    :Syntax:    ``.. dylan:current-module:: MODULE``
-   :Arguments: None
+   :Options:   None
 
 
 Directive doc fields
 --------------------
 
 Doc fields appear in the directive's content. Doc fields must be separated from
-the directive and any directive arguments by a blank line.
+the directive and any directive options by a blank line.
+
+``:example:``
+^^^^^^^^^^^^^
+
+   An example of the use of a binding. This doc field may appear multiple times.
+   
+   :Syntax:    ``:example: EXAMPLE``
+   :Synonyms:  None
+
+``:discussion:``
+^^^^^^^^^^^^^^^^
+
+   A discussion of a Dylan language element.
+   
+   :Syntax:    ``:discussion: DISCUSSION``
+   :Synonyms:  ``:description:``
 
 ``:supers:``
 ^^^^^^^^^^^^
@@ -252,6 +274,14 @@ the directive and any directive arguments by a blank line.
    :Syntax:    ``:slot NAME: DESCRIPTION``
    :Synonyms:  ``:getter:``
 
+``:operations:``
+^^^^^^^^^^^^^^^^
+
+   A list of methods or functions applicable to a class.
+   
+   :Syntax:    ``:operations: LIST``
+   :Synonyms:  ``:methods:``, ``:functions:``
+
 ``:param:``
 ^^^^^^^^^^^
 
@@ -261,7 +291,7 @@ the directive and any directive arguments by a blank line.
    :Syntax 1:  ``:param NAME: DESCRIPTION``
    :Syntax 2:  ``:param #key NAME: DESCRIPTION``
    :Syntax 3:  ``:param #rest NAME: DESCRIPTION``
-   :Synonyms:  ``:parameter:``, ``:argument:``, ``:arg:``
+   :Synonyms:  ``:parameter:``
    
    See `dylan:generic-function::`_ and `dylan:method::`_ for examples.
    
@@ -325,11 +355,21 @@ the directive and any directive arguments by a blank line.
             .. parsed-literal::
                define { `adjective }* variable `variables` = `init`
 
+``:conditions:``
+^^^^^^^^^^^^^^^^
 
-Directive arguments
--------------------
+   A discussion of conditions signaled by a function or by a class's make or
+   initialize.
+   
+   :Syntax:    ``:conditions: DISCUSSION``
+   :Synonyms:  ``:exceptions:``, ``:signals:``, ``:throws:``, ``:condition:``,
+               ``:exception:``
 
-Directive arguments appear immediately after the directive with no intervening
+
+Directive options
+-----------------
+
+Directive options appear immediately after the directive with no intervening
 blank lines.
 
 ``:library:``
@@ -354,7 +394,7 @@ blank lines.
 ^^^^^^^^^^^^^^^^^
 
    A way to distinguish one method from another -- generally a list of the types
-   of its required parameters. This argument is required in `dylan:method::`_
+   of its required parameters. This option is required in `dylan:method::`_
    directives.
    
    :Syntax: ``:specializer: EXPRESSION, EXPRESSION, ...``
@@ -399,7 +439,7 @@ blank lines.
 ``:sealed:``
 ^^^^^^^^^^^^
 
-   Indicates a sealed generic function or class.
+   Indicates a sealed generic function, method, or class.
    
    :Syntax: ``:sealed:``
 
@@ -416,6 +456,27 @@ blank lines.
    Indicates an uninstantiable class.
    
    :Syntax: ``:uninstantiable:``
+
+``:statement:``
+^^^^^^^^^^^^^^^
+
+   Indicates a statement macro.
+   
+   :Syntax: ``:statement:``
+   
+``:function:``
+^^^^^^^^^^^^^^
+
+   Indicates a function macro.
+   
+   :Syntax: ``:function:``
+   
+``:defining:``
+^^^^^^^^^^^^^^
+
+   Indicates a defining macro.
+   
+   :Syntax: ``:defining:``
 
 
 Roles
@@ -478,7 +539,7 @@ Roles
    :Syntax 4: ``:dylan:meth:`MARK TEXT <LIBRARY:MODULE:NAME(SPECIALIZER)>```
    
    - The *SPECIALIZER* component matches a method directive's `:specializer:`_
-     argument.
+     option.
    - You may omit *LIBRARY* or *MODULE* to use the current library or module.
    - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` which does not
      have an effect at the moment.
