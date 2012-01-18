@@ -523,7 +523,8 @@ Roles
    :Syntax 3: ``:dylan:role:`MARK <LIBRARY:MODULE:NAME>```
    :Syntax 4: ``:dylan:role:`MARK TEXT <LIBRARY:MODULE:NAME>```
    
-   - You may omit *LIBRARY* or *MODULE* to use the current library or module.
+   - You may omit *LIBRARY* or *MODULE* to use the current library or module or
+     link to a uniquely-named binding or module.
    - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` which does not
      have an effect at the moment.
      
@@ -571,7 +572,8 @@ Roles
    
    - The *SPECIALIZER* component matches a method directive's `:specializer:`_
      option. It cannot contain nested parentheses.
-   - You may omit *LIBRARY* or *MODULE* to use the current library or module.
+   - You may omit *LIBRARY* or *MODULE* to use the current library or module or
+     link to a uniquely-named binding or module.
    - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` which does not
      have an effect at the moment.
 

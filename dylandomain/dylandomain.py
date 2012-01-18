@@ -223,6 +223,8 @@ class DylanDescDirective (DescDirective):
             signode['ids'].append(fullid)
             signode['first'] = (not self.names)
             self.state.document.note_explicit_target(signode)
+            
+            # Check if already defined
             inventory = self.env.domaindata['dylan']['objects']
             if fullid in inventory:
                 self.state_machine.reporter.warning(
@@ -230,8 +232,14 @@ class DylanDescDirective (DescDirective):
                         .format(self.objtype, fullname,
                                 self.env.doc2path(inventory[fullid][0])),
                     line=self.lineno)
+            
+            # Add target
             inventory[fullid] = (self.env.docname, self.objtype,
                                  fullname, shortname, self.display_name)
+            
+            # Add target as shortname
+            fullids = self.env.domaindata['dylan']['fullids']
+            fullids.setdefault(name_to_id(shortname), []).append(fullid)
 
         # add index
         (library, module, binding) = fullname_parts(fullname)
@@ -668,6 +676,9 @@ class DylanDomain (Domain):
     }
     
     initial_data = {
+        'fullids': {},
+            # shortname -> [fullid, ...]
+            # fullid is fullname with <> replaced by [] and spaces removed
         'objects': {},
             # fullid -> (docname, objtype, fullname, shortname, displaytype)
             # fullid is fullname with <> replaced by [] and spaces removed
@@ -685,9 +696,12 @@ class DylanDomain (Domain):
     drm_index = None
     
     def clear_doc(self, docname):
-        for fullid, (objects_docname, _, _, _, _) in self.data['objects'].items():
+        for fullid, (objects_docname, _, _, shortname, _) in self.data['objects'].items():
             if objects_docname == docname:
                 del self.data['objects'][fullid]
+                shortid = name_to_id(shortname)
+                if fullid in self.data['fullids'].get(shortid, {}):
+                    self.data['fullids'][shortid].remove(fullid)
     
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         if typ == 'ref':
@@ -704,23 +718,40 @@ class DylanDomain (Domain):
             # the role processing function and the DylanXRefRole class.
             colons = target.count(':')
             fulltarget = None
-            try:
+
+            if hasattr(node, "dylan_curlibrary"):
                 library = node.dylan_curlibrary
-                module = node.dylan_curmodule
-            except AttributeError:
-                pass
             else:
-                if colons == 2:
-                    fulltarget = target
-                elif library is not None:
-                    library_id = name_to_id(library)
-                    if colons == 1:
-                        fulltarget = "{0}:{1}".format(library_id, target)
-                    elif module is not None:
-                        module_id = name_to_id(module)
-                        if colons == 0:
-                            fulltarget = "{0}:{1}:{2}".format(library_id, module_id, target)
+                library = None
+
+            if hasattr(node, "dylan_curmodule"):
+                module = node.dylan_curmodule
+            else:
+                module = None
+                
+            # Use current library and module
+            if colons == 2:
+                fulltarget = target
+            elif library is not None:
+                library_id = name_to_id(library)
+                if colons == 1:
+                    fulltarget = "{0}:{1}".format(library_id, target)
+                elif module is not None:
+                    module_id = name_to_id(module)
+                    if colons == 0:
+                        fulltarget = "{0}:{1}:{2}".format(library_id, module_id, target)
+                
+            # Fetch link info based on current library and module and passed target
             nodeargs = self.data['objects'].get(fulltarget, None)
+
+            # Can't find it that way; check the unique shortname list
+            if nodeargs is None and colons == 0:
+                targlist = self.data['fullids'].get(target, [])
+                if len(targlist) == 1:
+                    fulltarget = targlist[0]
+                    nodeargs = self.data['objects'].get(fulltarget, None)
+
+            # Found it; make a link.
             if nodeargs is not None:
                 todocname = nodeargs[0]
                 return make_refnode(builder, fromdocname, todocname, fulltarget, contnode)
