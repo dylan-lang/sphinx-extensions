@@ -42,7 +42,7 @@ def ensure_drm_index (filename):
             
     
 def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
-    match = RE.match(r'^(\S+)$|^(.*) <(\S+)>$', text)
+    match = RE.match(r'^(\S+)$|^(.*) <(\S+)>$', text, flags=RE.DOTALL)
     if match:
         base_url = inliner.document.settings.env.app.config.dylan_drm_url
         ensure_drm_index(inliner.document.settings.env.app.config.dylan_drm_index)
@@ -114,7 +114,8 @@ def fullname_parts (fullname):
 
 
 def name_to_id (name):
-    return name.replace(' ', '').replace('<', '[').replace('>', ']')
+    name = name.replace('<', '[').replace('>', ']')
+    return RE.sub(r'\s', '', name)
 
 
 class DylanCurrentLibrary (Directive):
@@ -156,6 +157,13 @@ class DylanDescDirective (DescDirective):
     element they are.
     """
     
+    annotations = []
+    """
+    Subclasses should set this to an list of options that annotate the language
+    element, such as 'sealed' or 'open' regarding classes. They must also be
+    listed in option_spec, though not all options need to be annotations.
+    """
+    
     option_spec = dict(DescDirective.option_spec.items() + {
         'synopsis': DIRECTIVES.unchanged,
     }.items())
@@ -182,17 +190,9 @@ class DylanDescDirective (DescDirective):
         """
         return partial
     
-    def annotations (self):
-        """
-        Subclasses return an iterable of strings annotating the language element,
-        e.g. 'open', 'sealed'.
-        """
-        return []
-    
     def handle_signature (self, sigs, signode):
         partial = sigs.strip()
         fullname = self.fullname(partial)
-        annotations = self.annotations()
 
         # Language element name
         (library, module, binding) = fullname_parts(fullname)
@@ -200,6 +200,11 @@ class DylanDescDirective (DescDirective):
         signode += SPHINX_NODES.desc_name(dispname, dispname)
         
         # Annotations
+        annotations = []
+        for opt in self.annotations:
+            if opt in self.options:
+                annot = self.options[opt]
+                annotations.append(annot or opt)
         annotations.append(self.display_name)
         annotlist = ' '.join(annotations)
         signode += RST_NODES.Text(' ')
@@ -233,9 +238,14 @@ class DylanDescDirective (DescDirective):
         indexname = unicode(binding or module or library)
         self.indexnode['entries'].append(('single', indexname, fullid, ''))
     
-    def report_and_raise_error (self, error):
+    def warn_and_raise_error (self, error):
         src, srcline = self.state.state_machine.get_source_and_line()
         msg = self.state.reporter.warning(error.args[0], line=srcline)
+        raise error
+    
+    def err_and_raise_error (self, error):
+        src, srcline = self.state.state_machine.get_source_and_line()
+        msg = self.state.reporter.error(error.args[0], line=srcline)
         raise error
 
     
@@ -249,7 +259,7 @@ class DylanLibraryDesc (DylanDescDirective):
         try:
             return library_fullname(env, partial)
         except ValueError as ve:
-            self.report_and_raise_error(ve)
+            self.warn_and_raise_error(ve)
 
     def before_content (self):
         env = self.state.document.settings.env
@@ -273,7 +283,7 @@ class DylanModuleDesc (DylanDescDirective):
         try:
             return module_fullname(env, partial, library=library_option)
         except ValueError as ve:
-            self.report_and_raise_error(ve)
+            self.warn_and_raise_error(ve)
     
     def before_content (self):
         env = self.state.document.settings.env
@@ -286,9 +296,14 @@ class DylanModuleDesc (DylanDescDirective):
 class DylanBindingDesc (DylanDescDirective):
     """A Dylan binding."""
     
+    annotations = [
+        'adjectives'
+    ] + DylanDescDirective.annotations
+    
     option_spec = dict(DylanDescDirective.option_spec.items() + {
         'library': DIRECTIVES.unchanged,
         'module': DIRECTIVES.unchanged,
+        'adjectives': DIRECTIVES.unchanged,
     }.items())
 
     doc_field_types = [
@@ -304,7 +319,7 @@ class DylanBindingDesc (DylanDescDirective):
             return binding_fullname(env, partial,
                     library=library_option, module=module_option)
         except ValueError as ve:
-            self.report_and_raise_error(ve)
+            self.warn_and_raise_error(ve)
     
     def before_content (self):
         env = self.state.document.settings.env
@@ -319,6 +334,11 @@ class DylanClassDesc (DylanBindingDesc):
 
     display_name = "class"
     
+    annotations = [
+        'open', 'primary', 'free', 'abstract', 'concrete', 'instantiable',
+        'uninstantiable', 'sealed'
+    ] + DylanBindingDesc.annotations
+    
     option_spec = dict(DylanBindingDesc.option_spec.items() + {
         'open': DIRECTIVES.flag,
         'primary': DIRECTIVES.flag,
@@ -327,7 +347,7 @@ class DylanClassDesc (DylanBindingDesc):
         'sealed': DIRECTIVES.flag,
         'concrete': DIRECTIVES.flag,
         'instantiable': DIRECTIVES.flag,
-        'uninstantiable': DIRECTIVES.flag
+        'uninstantiable': DIRECTIVES.flag,
     }.items())
 
     doc_field_types = [
@@ -343,14 +363,6 @@ class DylanClassDesc (DylanBindingDesc):
         Field('operations', label="Operations", has_arg=False,
             names=('operations', 'methods', 'functions')),
     ] + DylanBindingDesc.doc_field_types
-   
-    def annotations (self):
-        annotations = []
-        for key in ['open', 'primary', 'free', 'abstract', 'sealed', 'concrete',
-                    'instantiable', 'uninstantiable']:
-            if key in self.options:
-                annotations.append(key)
-        return annotations
 
 
 class DylanFunctionDesc (DylanBindingDesc):
@@ -373,23 +385,24 @@ class DylanGenFuncDesc (DylanFunctionDesc):
 
     display_name = "generic function"
     
+    annotations = [
+        'sealed', 'open'
+    ] + DylanFunctionDesc.annotations
+    
     option_spec = dict(DylanFunctionDesc.option_spec.items() + {
         'sealed': DIRECTIVES.flag,
         'open': DIRECTIVES.flag
     }.items())
-    
-    def annotations (self):
-        annotations = []
-        for key in ['sealed', 'open']:
-            if key in self.options:
-                annotations.append(key)
-        return annotations
 
 
 class DylanMethodDesc (DylanFunctionDesc):
     """A Dylan method in a generic function."""
 
     display_name = "method"
+    
+    annotations = [
+        'sealed'
+    ] + DylanFunctionDesc.annotations
     
     option_spec = dict(DylanFunctionDesc.option_spec.items() + {
         'specializer': DIRECTIVES.unchanged,
@@ -398,15 +411,11 @@ class DylanMethodDesc (DylanFunctionDesc):
     
     def fullname (self, partial):
         basename = super(DylanMethodDesc, self).fullname(partial)
-        specializer = self.options['specializer']
+        specializer = self.options.get('specializer', None)
+        if (specializer is None):
+            e = ValueError('Method directive requires :specializer: option.')
+            self.err_and_raise_error(e)
         return "{0}({1})".format(basename, specializer)
-
-    def annotations (self):
-        annotations = []
-        for key in ['sealed']:
-            if key in self.options:
-                annotations.append(key)
-        return annotations
 
 
 class DylanConstFuncDesc (DylanFunctionDesc):
@@ -442,11 +451,16 @@ class DylanMacroDesc (DylanBindingDesc):
     """A Dylan macro."""
 
     display_name = "macro"
+    
+    annotations = [
+        'statement', 'function', 'defining', 'macro-type'
+    ] + DylanBindingDesc.annotations
 
     option_spec = dict(DylanBindingDesc.option_spec.items() + {
         'statement': DIRECTIVES.flag,
         'function': DIRECTIVES.flag,
-        'defining': DIRECTIVES.flag
+        'defining': DIRECTIVES.flag,
+        'macro-type': DIRECTIVES.unchanged,
     }.items())
 
     doc_field_types = [
@@ -457,13 +471,6 @@ class DylanMacroDesc (DylanBindingDesc):
         Field('call', label="Macro Call", has_arg=False,
             names=('call', 'macrocall', 'syntax'))
     ] + DylanBindingDesc.doc_field_types
-
-    def annotations (self):
-        annotations = []
-        for key in ['statement', 'function', 'defining']:
-            if key in self.options:
-                annotations.append(key)
-        return annotations
 
 
 #
@@ -568,18 +575,27 @@ class DylanObjectsIndex (Index):
 
 class DylanXRefRole (XRefRole):
     def process_link (self, env, refnode, has_explicit_title, title, target):
-        """Stash the current library and module for later lookup."""
+        """
+        Stash the current library and module for later lookup, and repair damage
+        to title.
+        """
         refnode.dylan_curlibrary = get_current_library(env)
         refnode.dylan_curmodule = get_current_module(env)
+        title = title.replace("\x1A", "<")
         return (title, target)
 
 
 def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
     """
     Rebuild rawtext and text to avoid default escaping/parsing behavior. We
-    use [] instead of <> in targets.
+    use [] instead of <> in targets and the SUB character instead of < in the
+    title.
     """
-    match = RE.match(r'^(.+?) <(.+)>$|^(.+)$', text)
+    if name == 'dylan:meth':
+        match = RE.match(r'^(.+)\s<(\S+\(.+\))>$|^(\S+\(.+\))$', text, flags=RE.DOTALL)
+    else:
+        match = RE.match(r'^(.+)\s<(\S+)>$|^(.+)$', text, flags=RE.DOTALL)
+
     if match:
         linktitle, linkkey1, linkkey2 = match.groups()
         linkkey = (linkkey1 or linkkey2)
@@ -587,9 +603,9 @@ def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
             keyparts = linkkey.split(':')
             linktitle = keyparts[-1]
         
-        esc_linktitle = linktitle.replace("<", r"\<").replace(">", r"\>")
+        esc_linktitle = linktitle.replace("<", "\x1A")
         targ_linkkey = name_to_id(linkkey)
-        new_text = "{0} <{1}>".format(linktitle, targ_linkkey)
+        new_text = "{0} <{1}>".format(esc_linktitle, targ_linkkey)
         new_rawtext = ":{0}:`{1} <{2}>`".format(name, esc_linktitle, targ_linkkey)
         
         do_xref = DylanXRefRole()
@@ -673,9 +689,6 @@ class DylanDomain (Domain):
             if objects_docname == docname:
                 del self.data['objects'][fullid]
     
-    def process_doc(self, env, docname, document):
-        pass
-        
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         if typ == 'ref':
             nodeargs = self.data['refnodes'].get(target, None)
@@ -691,18 +704,22 @@ class DylanDomain (Domain):
             # the role processing function and the DylanXRefRole class.
             colons = target.count(':')
             fulltarget = None
-            library = node.dylan_curlibrary
-            module = node.dylan_curmodule
-            if colons == 2:
-                fulltarget = target
-            elif library is not None:
-                library_id = name_to_id(library)
-                if colons == 1:
-                    fulltarget = "{0}:{1}".format(library_id, target)
-                elif module is not None:
-                    module_id = name_to_id(module)
-                    if colons == 0:
-                        fulltarget = "{0}:{1}:{2}".format(library_id, module_id, target)
+            try:
+                library = node.dylan_curlibrary
+                module = node.dylan_curmodule
+            except AttributeError:
+                pass
+            else:
+                if colons == 2:
+                    fulltarget = target
+                elif library is not None:
+                    library_id = name_to_id(library)
+                    if colons == 1:
+                        fulltarget = "{0}:{1}".format(library_id, target)
+                    elif module is not None:
+                        module_id = name_to_id(module)
+                        if colons == 0:
+                            fulltarget = "{0}:{1}:{2}".format(library_id, module_id, target)
             nodeargs = self.data['objects'].get(fulltarget, None)
             if nodeargs is not None:
                 todocname = nodeargs[0]
@@ -718,6 +735,6 @@ class DylanDomain (Domain):
     
 def setup (app):
     default_index_path = OS.path.join(OS.path.dirname(__file__), 'drm_index.txt')
-    app.add_config_value('dylan_drm_url', 'http://www.opendylan.org/books/drm/', 'html')
+    app.add_config_value('dylan_drm_url', 'http://opendylan.org/books/drm/', 'html')
     app.add_config_value('dylan_drm_index', default_index_path, 'html')
     app.add_domain(DylanDomain)

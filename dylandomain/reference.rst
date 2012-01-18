@@ -88,7 +88,7 @@ Directives with content
    :Syntax:       ``.. dylan:class:: NAME``
    :Options:      `:open:`_, `:sealed:`_, `:primary:`_, `:free:`_, `:abstract:`_,
                   `:concrete:`_, `:instantiable:`_, `:uninstantiable:`_,
-                  `:library:`_, `:module:`_
+                  `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:supers:`_, `:keyword:`_, `:slot:`_, `:summary:`_, 
                   `:discussion:`_, `:conditions:`_, `:operations:`_, `:example:`_
    :References:   `:dylan:class:`_
@@ -111,7 +111,8 @@ Directives with content
    A generic function.
    
    :Syntax:       ``.. dylan:generic-function:: NAME``
-   :Options:      `:open:`_, `:sealed:`_, `:library:`_, `:module:`_
+   :Options:      `:open:`_, `:sealed:`_, `:adjectives:`_, `:library:`_,
+                  `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_, 
                   `:discussion:`_, `:conditions:`_, `:example:`_
    :References:   `:dylan:gf:`_
@@ -133,7 +134,8 @@ Directives with content
    A method of a generic function.
    
    :Syntax:       ``.. dylan:method:: NAME``
-   :Options:      `:specializer:`_, `:sealed:`_, `:library:`_, `:module:`_
+   :Options:      `:specializer:`_, `:sealed:`_, `:adjectives:`_, `:library:`_,
+                  `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_, 
                   `:discussion:`_, `:conditions:`_, `:example:`_
    :References:   `:dylan:meth:`_
@@ -164,7 +166,7 @@ Directives with content
    A function that does not belong to a generic function.
    
    :Syntax:       ``.. dylan:function:: NAME``
-   :Options:      `:library:`_, `:module:`_
+   :Options:      `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_, 
                   `:discussion:`_, `:conditions:`_, `:example:`_
    :References:   `:dylan:func:`_
@@ -175,7 +177,7 @@ Directives with content
    A constant.
    
    :Syntax:       ``.. dylan:constant:: NAME``
-   :Options:      `:library:`_, `:module:`_
+   :Options:      `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:type:`_, `:value: (2)`_, `:summary:`_, `:discussion:`_,
                   `:example:`_
    :References:   `:dylan:const:`_
@@ -186,7 +188,7 @@ Directives with content
    A variable.
    
    :Syntax:       ``.. dylan:variable:: NAME``
-   :Options:      `:library:`_, `:module:`_
+   :Options:      `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:type:`_, `:value: (2)`_, `:summary:`_, `:discussion:`_,
                   `:example:`_
    :References:   `:dylan:var:`_
@@ -197,8 +199,8 @@ Directives with content
    A macro.
    
    :Syntax:       ``.. dylan:macro:: NAME``
-   :Options:      `:statement:`_, `:function:`_, `:defining:`_,
-                  `:library:`_, `:module:`_
+   :Options:      `:statement:`_, `:function:`_, `:defining:`_, `:macro-type:`_,
+                  `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:macrocall:`_, `:summary:`_, 
                   `:discussion:`_, `:example:`_
    :References:   `:dylan:macro:`_
@@ -404,8 +406,8 @@ blank lines.
 ^^^^^^^^^^^^^^^^^
 
    A way to distinguish one method from another -- generally a list of the types
-   of its required parameters. This option is required in `dylan:method::`_
-   directives.
+   of its required parameters. It cannot contain parentheses. This option is
+   required in `dylan:method::`_ directives.
    
    :Syntax: ``:specializer: EXPRESSION, EXPRESSION, ...``
    
@@ -414,79 +416,98 @@ blank lines.
 ``:open:``
 ^^^^^^^^^^
 
-   Indicates an open class or generic function.
+   Indicates an open class or generic function. Synonymous with ``:adjectives:
+   open``.
    
    :Syntax: ``:open:``
 
 ``:primary:``
 ^^^^^^^^^^^^^
    
-   Indicates a primary class.
+   Indicates a primary class. Synonymous with ``:adjectives: primary``.
    
    :Syntax: ``:primary:``
 
 ``:free:``
 ^^^^^^^^^^
    
-   Indicates a free class.
+   Indicates a free class. Synonymous with ``:adjectives: free``.
    
    :Syntax: ``:free:``
 
 ``:abstract:``
 ^^^^^^^^^^^^^^
 
-   Indicates an abstract class.
+   Indicates an abstract class. Synonymous with ``:adjectives: abstract``.
    
    :Syntax: ``:abstract:``
 
 ``:concrete:``
 ^^^^^^^^^^^^^^
    
-   Indicates a concrete class.
+   Indicates a concrete class. Synonymous with ``:adjectives: concrete``.
    
    :Syntax: ``:concrete:``
 
 ``:sealed:``
 ^^^^^^^^^^^^
 
-   Indicates a sealed generic function, method, or class.
+   Indicates a sealed generic function, method, or class. Synonymous with
+   ``:adjectives: sealed``.
    
    :Syntax: ``:sealed:``
 
 ``:instantiable:``
 ^^^^^^^^^^^^^^^^^^
    
-   Indicates an instantiable class.
+   Indicates an instantiable class. Synonymous with ``:adjectives:
+   instantiable``.
    
    :Syntax: ``:instantiable:``
 
 ``:uninstantiable:``
 ^^^^^^^^^^^^^^^^^^^^
 
-   Indicates an uninstantiable class.
+   Indicates an uninstantiable class. Synonymous with ``:adjectives:
+   uninstantiable``.
    
    :Syntax: ``:uninstantiable:``
+
+``:adjectives:``
+^^^^^^^^^^^^^^^^
+
+   Adjectives to a binding. You may use this to display implementation-specific
+   adjectives.
+   
+   :Syntax: ``:adjectives: ADJECTIVES``
 
 ``:statement:``
 ^^^^^^^^^^^^^^^
 
-   Indicates a statement macro.
+   Indicates a statement macro. Synonymous with ``:macro-type: statement``.
    
    :Syntax: ``:statement:``
    
 ``:function:``
 ^^^^^^^^^^^^^^
 
-   Indicates a function macro.
+   Indicates a function macro. Synonymous with ``:macro-type: function``.
    
    :Syntax: ``:function:``
    
 ``:defining:``
 ^^^^^^^^^^^^^^
 
-   Indicates a defining macro.
+   Indicates a defining macro. Synonymous with ``:macro-type: defining``.
    
    :Syntax: ``:defining:``
+
+``:macro-type:``
+^^^^^^^^^^^^^^^^
+
+   Describes the type of a macro, in a general sense. Free-form.
+   
+   :Syntax: ``:macro-type: TYPE``
 
 
 Roles
@@ -549,13 +570,10 @@ Roles
    :Syntax 4: ``:dylan:meth:`MARK TEXT <LIBRARY:MODULE:NAME(SPECIALIZER)>```
    
    - The *SPECIALIZER* component matches a method directive's `:specializer:`_
-     option.
+     option. It cannot contain nested parentheses.
    - You may omit *LIBRARY* or *MODULE* to use the current library or module.
    - *MARK* may be ``!`` to avoid making a hyperlink, or ``~`` which does not
      have an effect at the moment.
-
-.. note:: Syntax 1 does not actually work. But give it a title or mark, and it
-   should be okay.
 
 ``:dylan:func:``
 ^^^^^^^^^^^^^^^^
