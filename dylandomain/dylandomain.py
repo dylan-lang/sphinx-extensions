@@ -42,7 +42,7 @@ def ensure_drm_index (filename):
             
     
 def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
-    match = RE.match(r'^(\S+)$|^(.*) <(\S+)>$', text, flags=RE.DOTALL)
+    match = RE.match(r'^(\S+)$|^(.*)\s<(\S+)>$', text, flags=RE.DOTALL)
     if match:
         base_url = inliner.document.settings.env.app.config.dylan_drm_url
         ensure_drm_index(inliner.document.settings.env.app.config.dylan_drm_index)
