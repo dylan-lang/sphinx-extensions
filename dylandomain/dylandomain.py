@@ -211,13 +211,15 @@ class DylanDescDirective (DescDirective):
         signode += SPHINX_NODES.desc_annotation(annotlist, annotlist)
         
         signode['fullname'] = fullname
-        return (fullname, partial)
+        return (fullname, partial, dispname)
     
     def add_target_and_index (self, name_tuple, sigs, signode):
         # note target
         fullname = name_tuple[0]
         shortname = name_tuple[1]
+        specname = name_tuple[2]
         fullid = name_to_id(fullname)
+        specid = name_to_id(specname)
         if fullid not in self.state.document.ids:
             signode['names'].append(fullname)
             signode['ids'].append(fullid)
@@ -235,15 +237,14 @@ class DylanDescDirective (DescDirective):
             
             # Add target
             inventory[fullid] = (self.env.docname, self.objtype,
-                                 fullname, shortname, self.display_name)
+                                 fullname, shortname, specname, self.display_name)
             
-            # Add target as shortname
+            # Add target by specname
             fullids = self.env.domaindata['dylan']['fullids']
-            fullids.setdefault(name_to_id(shortname), []).append(fullid)
+            fullids.setdefault(specid, []).append(fullid)
 
-        # add index
-        (library, module, binding) = fullname_parts(fullname)
-        indexname = unicode(binding or module or library)
+        # add index; this is general index, so add specname, not shortname
+        indexname = unicode(specname)
         self.indexnode['entries'].append(('single', indexname, fullid, ''))
     
     def warn_and_raise_error (self, error):
@@ -517,7 +518,7 @@ class DylanObjectsIndex (Index):
         prev_shortname = ''
         prev_fullname = ''
         num_toplevels = 0
-        for (fullid, (docname, objtype, fullname, shortname, displaytype)) in objects:
+        for (fullid, (docname, _, fullname, shortname, specname, displaytype)) in objects:
             if docnames and docname not in docnames:
                 continue
 
@@ -532,10 +533,9 @@ class DylanObjectsIndex (Index):
             entries = content.setdefault(indexchar, [])
 
             # Use the last part of the full name in the index,
-            # i.e. short name + specializer
+            # i.e. short name + specializer a.k.a. specname
             subtype = 0;
-            (library, module, binding) = fullname_parts(fullname)
-            indexname = binding or module or library
+            indexname = specname
             
             if prev_shortname == shortname:
                 # We have a duplicate name
@@ -677,11 +677,13 @@ class DylanDomain (Domain):
     
     initial_data = {
         'fullids': {},
-            # shortname -> [fullid, ...]
+            # specid -> [fullid, ...]
             # fullid is fullname with <> replaced by [] and spaces removed
+            # specid is the specname with <> replaced by [] and spaces removed
         'objects': {},
-            # fullid -> (docname, objtype, fullname, shortname, displaytype)
+            # fullid -> (docname, objtype, fullname, shortname, specname, displaytype)
             # fullid is fullname with <> replaced by [] and spaces removed
+            # specname is the shortname plus specializer
         'reflabels': {
             # label -> (docname, targetid)
             'dylan-apiindex': (name + DylanObjectsIndex.name,
@@ -696,12 +698,12 @@ class DylanDomain (Domain):
     drm_index = None
     
     def clear_doc(self, docname):
-        for fullid, (objects_docname, _, _, shortname, _) in self.data['objects'].items():
+        for fullid, (objects_docname, _, _, _, specname, _) in self.data['objects'].items():
             if objects_docname == docname:
                 del self.data['objects'][fullid]
-                shortid = name_to_id(shortname)
-                if fullid in self.data['fullids'].get(shortid, {}):
-                    self.data['fullids'][shortid].remove(fullid)
+                specid = name_to_id(specname)
+                if fullid in self.data['fullids'].get(specid, {}):
+                    self.data['fullids'][specid].remove(fullid)
     
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         if typ == 'ref':
@@ -714,8 +716,8 @@ class DylanDomain (Domain):
         if typ in ['lib', 'mod', 'class', 'var', 'const', 'func', 'gf', 'meth', 'macro']:
             # Target will have been transformed to the standard ID format:
             # no spaces and <> changed to []. Additionally, the node will have
-            # dylan_curlibrary and dylan_curmodule set. This is all done by
-            # the role processing function and the DylanXRefRole class.
+            # dylan_curlibrary and dylan_curmodule set if possible. This is all
+            # done by the role processing function and the DylanXRefRole class.
             colons = target.count(':')
             fulltarget = None
 
@@ -760,8 +762,8 @@ class DylanDomain (Domain):
     
     def get_objects(self):
         for kv in self.data['objects'].iteritems():
-            (fullid, (docname, objtype, fullname, shortname, displaytype)) = kv
-            yield (fullname, shortname, objtype, docname, fullid, 0)
+            (fullid, (docname, objtype, fullname, shortname, specname, displaytype)) = kv
+            yield (fullname, specname, objtype, docname, fullid, 0)
     
     
 def setup (app):
