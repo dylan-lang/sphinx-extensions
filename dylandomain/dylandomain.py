@@ -459,6 +459,8 @@ class DylanVariableDesc (DylanConstOrVarDesc):
 class DylanMacroDesc (DylanBindingDesc):
     """A Dylan macro."""
 
+    final_argument_whitespace = True
+    
     display_name = "macro"
     
     annotations = [
@@ -601,8 +603,10 @@ def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
     """
     if name == 'dylan:meth':
         match = RE.match(r'^(.+)\s<(\S+\(.+\))>$|^(\S+\(.+\))$', text, flags=RE.DOTALL)
+    elif name == 'dylan:macro':
+        match = RE.match(r'^(.+)\s<((?:define\s+)?\S+)>$|^((?:define\s+)?\S+)$', text, flags=RE.DOTALL)
     else:
-        match = RE.match(r'^(.+)\s<(\S+)>$|^(.+)$', text, flags=RE.DOTALL)
+        match = RE.match(r'^(.+)\s<(\S+)>$|^(\S+)$', text, flags=RE.DOTALL)
 
     if match:
         linktitle, linkkey1, linkkey2 = match.groups()
