@@ -191,6 +191,7 @@ class DylanDescDirective (DescDirective):
         return partial
     
     def handle_signature (self, sigs, signode):
+        signode['classes'].append('dylan-api')
         partial = sigs.strip()
         fullname = self.fullname(partial)
 
