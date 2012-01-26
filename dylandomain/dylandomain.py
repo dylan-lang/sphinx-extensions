@@ -115,7 +115,7 @@ def fullname_parts (fullname):
 
 def name_to_id (name):
     name = name.replace('<', '[').replace('>', ']')
-    return RE.sub(r'\s', '', name)
+    return RE.sub(r'\s', '', name).lower()
 
 
 class DylanCurrentLibrary (Directive):
