@@ -205,8 +205,8 @@ class DylanDescDirective (DescDirective):
         for opt in self.annotations:
             if opt in self.options:
                 annot = self.options[opt]
-                annotations.append(annot or opt)
-        annotations.append(self.display_name)
+                annotations.append((annot or opt).capitalize())
+        annotations.append(self.display_name.capitalize())
         annotlist = ' '.join(annotations)
         signode += RST_NODES.Text(' ')
         signode += SPHINX_NODES.desc_annotation(annotlist, annotlist)
