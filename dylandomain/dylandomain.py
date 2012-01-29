@@ -22,35 +22,23 @@ from sphinx.roles import XRefRole
 from sphinx.util.docfields import Field, GroupedField, TypedField
 from sphinx.util.nodes import make_refnode
 
+import drmindex
+
 
 #
 # DRM link support
 #
 
 
-def ensure_drm_index (filename):
-    if DylanDomain.drm_index is None:
-        DylanDomain.drm_index = {}
-        with open(filename) as file_in:
-            file_pattern = RE.compile(r'(\S+)\s+(.+)')
-            for line in file_in:
-                if line:
-                    match = file_pattern.match(line)
-                    if (match is not None):
-                        key, value = match.groups()
-                        DylanDomain.drm_index[key.lower()] = value
-            
-    
 def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
     match = RE.match(r'^(\S+)$|^(.*)\s<(\S+)>$', text, flags=RE.DOTALL)
     if match:
         base_url = inliner.document.settings.env.app.config.dylan_drm_url
-        ensure_drm_index(inliner.document.settings.env.app.config.dylan_drm_index)
 
         linkkey1, linktext, linkkey2 = match.groups()
         linkkey = linkkey1 or linkkey2
         linktext = (linktext or linkkey).strip()
-        location = DylanDomain.drm_index.get(linkkey.lower(), linkkey)
+        location = drmindex.lookup(linkkey)
         href = urljoin(base_url, location)
 
         set_classes(options)
@@ -702,8 +690,6 @@ class DylanDomain (Domain):
         DylanObjectsIndex
     ]
     
-    drm_index = None
-    
     def clear_doc(self, docname):
         for fullid, (objects_docname, _, _, _, specname, _) in self.data['objects'].items():
             if objects_docname == docname:
@@ -774,7 +760,5 @@ class DylanDomain (Domain):
     
     
 def setup (app):
-    default_index_path = OS.path.join(OS.path.dirname(__file__), 'drm_index.txt')
     app.add_config_value('dylan_drm_url', 'http://opendylan.org/books/drm/', 'html')
-    app.add_config_value('dylan_drm_index', default_index_path, 'html')
     app.add_domain(DylanDomain)
