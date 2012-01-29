@@ -148,15 +148,24 @@ singleton			Constructing_and_Initializing_Instances#singleton
 limited				Constructing_and_Initializing_Instances#limited
 type-union			Constructing_and_Initializing_Instances#type-union
 vector				Constructing_and_Initializing_Instances#vector
-variable			Definition_Macros#define_variable define
-constant			Definition_Macros#define_constant define
-generic				Definition_Macros#define_generic define
-method				Definition_Macros#define_method define
-class				Definition_Macros#define_class define
-module				Definition_Macros#define_module define
-library				Definition_Macros#define_library define
-domain				Definition_Macros#define_sealed_domain define sealed
-macro				Definition_Macros#define_macro define
+variable			Definition_Macros#define_variable
+define_variable                 Definition_Macros#define_variable
+constant			Definition_Macros#define_constant
+define_constant                 Definition_Macros#define_constant
+generic				Definition_Macros#define_generic
+define_generic                  Definition_Macros#define_generic
+method				Definition_Macros#define_method
+define_method                   Definition_Macros#define_method
+class				Definition_Macros#define_class
+define_class			Definition_Macros#define_class
+module				Definition_Macros#define_module
+define_module			Definition_Macros#define_module
+library				Definition_Macros#define_library
+define_library			Definition_Macros#define_library
+domain				Definition_Macros#define_sealed_domain
+define_sealed_domain		Definition_Macros#define_sealed_domain
+macro				Definition_Macros#define_macro
+define_macro			Definition_Macros#define_macro
 language:			Dylan_Interchange_Format#language:
 module:				Dylan_Interchange_Format#module:
 author:				Dylan_Interchange_Format#author:
@@ -187,7 +196,8 @@ always				Functional_Operations#always
 Numbers				Lexical_Grammar#XREF-2105
 let				Local_Declaration_Macros#let
 local				Local_Declaration_Macros#local
-handler				Local_Declaration_Macros#let_handler let
+handler				Local_Declaration_Macros#let_handler
+let_handler			Local_Declaration_Macros#let_handler
 <number>			Number_Classes#number
 <complex>			Number_Classes#complex
 <real>				Number_Classes#real
