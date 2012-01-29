@@ -115,7 +115,7 @@ def fullname_parts (fullname):
 
 def name_to_id (name):
     name = name.replace('<', '[').replace('>', ']')
-    return RE.sub(r'\s', '', name)
+    return RE.sub(r'\s', '', name).lower()
 
 
 class DylanCurrentLibrary (Directive):
@@ -191,6 +191,7 @@ class DylanDescDirective (DescDirective):
         return partial
     
     def handle_signature (self, sigs, signode):
+        signode['classes'].append('dylan-api')
         partial = sigs.strip()
         fullname = self.fullname(partial)
 
@@ -204,8 +205,8 @@ class DylanDescDirective (DescDirective):
         for opt in self.annotations:
             if opt in self.options:
                 annot = self.options[opt]
-                annotations.append(annot or opt)
-        annotations.append(self.display_name)
+                annotations.append((annot or opt).capitalize())
+        annotations.append(self.display_name.capitalize())
         annotlist = ' '.join(annotations)
         signode += RST_NODES.Text(' ')
         signode += SPHINX_NODES.desc_annotation(annotlist, annotlist)
