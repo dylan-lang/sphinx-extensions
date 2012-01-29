@@ -243,9 +243,11 @@ class DylanDescDirective (DescDirective):
             fullids = self.env.domaindata['dylan']['fullids']
             fullids.setdefault(specid, []).append(fullid)
 
-        # add index; this is general index, so add specname, not shortname
-        indexname = unicode(specname)
-        self.indexnode['entries'].append(('single', indexname, fullid, ''))
+        # add index
+        indexentry = unicode(shortname)
+        if shortname != specname:
+            indexentry += "; {0}".format(specname)
+        self.indexnode['entries'].append(('single', indexentry, fullid, ''))
     
     def warn_and_raise_error (self, error):
         src, srcline = self.state.state_machine.get_source_and_line()
