@@ -206,6 +206,7 @@ index = {
   "local": "Local_Declaration_Macros#local",
   "handler": "Local_Declaration_Macros#let_handler",
   "let_handler": "Local_Declaration_Macros#let_handler",
+  "next-method": "Method_Dispatch#HEADING-50-32",
   "<number>": "Number_Classes#number",
   "<complex>": "Number_Classes#complex",
   "<real>": "Number_Classes#real",
