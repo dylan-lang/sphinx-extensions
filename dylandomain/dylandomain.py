@@ -423,6 +423,11 @@ class DylanConstFuncDesc (DylanFunctionDesc):
 
     display_name = "function"
 
+class DylanPrimitiveDesc (DylanFunctionDesc):
+    """A Dylan primitive."""
+
+    display_name = "primitive"
+
 
 class DylanConstOrVarDesc (DylanBindingDesc):
     """A Dylan constant or variable."""
@@ -655,6 +660,7 @@ class DylanDomain (Domain):
         'function': DylanConstFuncDesc,
         'method': DylanMethodDesc,
         'generic-function': DylanGenFuncDesc,
+        'primitive': DylanPrimitiveDesc,
         'macro': DylanMacroDesc,
     }
     
@@ -667,6 +673,7 @@ class DylanDomain (Domain):
         'function': ObjType('function', 'func'),
         'method':   ObjType('method', 'meth'),
         'generic-function': ObjType('generic-function', 'gf'),
+        'primitive': ObjType('primitive', 'prim'),
         'macro':    ObjType('macro', 'macro'),
     }
     

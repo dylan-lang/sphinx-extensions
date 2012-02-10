@@ -171,6 +171,17 @@ Directives with content
                   `:discussion:`_, `:conditions:`_, `:example:`_
    :References:   `:dylan:func:`_
 
+``dylan:primitive::``
+^^^^^^^^^^^^^^^^^^^^^
+
+   A primitive operation.
+
+   :Syntax:       `.. dylan:primitive:: NAME``
+   :Options:      `:adjectives:`_, `:library:`_, `:module:`_
+   :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_, 
+                  `:discussion:`_, `:conditions:`_, `:example:`_
+   :References:   `:dylan:prim:`_
+
 ``dylan:constant::``
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -581,6 +592,11 @@ Roles
 ^^^^^^^^^^^^^^^^
 
    Creates a cross-reference to a `dylan:function::`_ directive.
+
+``:dylan:prim:``
+^^^^^^^^^^^^^^^^
+
+   Creates a cross-reference to a `dylan:primitive::`_ directive.
    
 ``:dylan:const:``
 ^^^^^^^^^^^^^^^^^
