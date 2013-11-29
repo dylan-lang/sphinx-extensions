@@ -193,6 +193,17 @@ Directives with content
                   `:example:`_
    :References:   `:dylan:const:`_
 
+``dylan:type::``
+^^^^^^^^^^^^^^^^
+
+   A type.
+
+   :Syntax:       ``.. dylan:type:: NAME``
+   :Options:      `:adjectives:`_, `:library:`_, `:module:`_
+   :Doc Fields:   `:type:`_, `:value: (2)`_, `:summary:`_, `:discussion:`_,
+                  `:example:`_, `:supertypes:`_, `:operations:`_, `:equivalent:`_
+   :References:   `:dylan:type:`_
+
 ``dylan:variable::``
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -387,6 +398,21 @@ the directive and any directive options by a blank line.
    :Syntax:    ``:conditions: DISCUSSION``
    :Synonyms:  ``:exceptions:``, ``:signals:``, ``:throws:``, ``:condition:``,
                ``:exception:``
+
+``:supertypes:``
+^^^^^^^^^^^^^^^^
+
+   A supertype of a type. This doc field may appear multiple times.
+   
+   :Syntax:    ``:supertypes: DESCRIPTION``
+   :Synonyms:  ``:supertype:``, ``:super:``, ``:supers:``
+
+``:equivalent:``
+^^^^^^^^^^^^^^^^
+
+   The equivalent of a type.
+
+   :Syntax:    ``:equivalent: DESCRIPTION``
 
 
 Directive options
@@ -607,9 +633,14 @@ Roles
 ^^^^^^^^^^^^^^^
 
    Creates a cross-reference to a `dylan:variable::`_ directive.
+
+``:dylan:type:``
+^^^^^^^^^^^^^^^^
+
+   Creates a cross-reference to a `dylan:type::`_ directive.
    
 ``:dylan:macro:``
 ^^^^^^^^^^^^^^^^^
 
    Creates a cross-reference to a `dylan:macro::`_ directive.
-   
+

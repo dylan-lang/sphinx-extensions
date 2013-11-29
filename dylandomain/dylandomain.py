@@ -445,6 +445,20 @@ class DylanConstantDesc (DylanConstOrVarDesc):
 
     display_name = "constant"
 
+class DylanTypeDesc (DylanConstOrVarDesc):
+    """A Dylan type."""
+
+    display_name ="type"
+
+    doc_field_types = [
+        Field('supertypes', label="Supertypes", has_arg=False,
+            names=('supers', 'supertypes', 'super', 'supertype')),
+        Field('equivalent', label="Equivalent", has_arg=False,
+            names=('equivalent')),
+        Field('operations', label="Operations", has_arg=False,
+            names=('operations', 'methods', 'functions')),
+    ] + DylanConstOrVarDesc.doc_field_types
+
 
 class DylanVariableDesc (DylanConstOrVarDesc):
     """A Dylan variable."""
@@ -647,6 +661,7 @@ class DylanDomain (Domain):
         'meth': desc_link,
         'gf': desc_link,
         'macro': desc_link,
+        'type': desc_link,
     }
     
     directives = {
@@ -662,6 +677,7 @@ class DylanDomain (Domain):
         'generic-function': DylanGenFuncDesc,
         'primitive': DylanPrimitiveDesc,
         'macro': DylanMacroDesc,
+        'type': DylanTypeDesc,
     }
     
     object_types = {
@@ -675,6 +691,7 @@ class DylanDomain (Domain):
         'generic-function': ObjType('generic-function', 'gf'),
         'primitive': ObjType('primitive', 'prim'),
         'macro':    ObjType('macro', 'macro'),
+        'type':     ObjType('type', 'type'),
     }
     
     initial_data = {
@@ -713,7 +730,7 @@ class DylanDomain (Domain):
                 targetid = nodeargs[1]
                 return make_refnode(builder, fromdocname, todocname, targetid, contnode)
 
-        if typ in ['lib', 'mod', 'class', 'var', 'const', 'func', 'gf', 'meth', 'macro']:
+        if typ in ['lib', 'mod', 'class', 'var', 'const', 'func', 'gf', 'meth', 'macro', 'type']:
             # Target will have been transformed to the standard ID format:
             # no spaces and <> changed to []. Additionally, the node will have
             # dylan_curlibrary and dylan_curmodule set if possible. This is all
