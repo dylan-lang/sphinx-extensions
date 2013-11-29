@@ -51,7 +51,7 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
             line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
-    
+
 
 #
 # Dylan language directives
@@ -108,27 +108,27 @@ def name_to_id (name):
 
 class DylanCurrentLibrary (Directive):
     """Sets up current library."""
-    
+
     has_content = False
     required_arguments = 1
     optional_arguments = 0
     final_argument_whitespace = False
-    
+
     def run (self):
         env = self.state.document.settings.env
         name = self.arguments[0].strip()
         set_current_library(env, name)
         return []
-    
+
 
 class DylanCurrentModule (Directive):
     """Sets up current module."""
-    
+
     has_content = False
     required_arguments = 1
     optional_arguments = 0
     final_argument_whitespace = False
-    
+
     def run (self):
         env = self.state.document.settings.env
         name = self.arguments[0].strip()
@@ -144,18 +144,18 @@ class DylanDescDirective (DescDirective):
     Subclasses should set this to a string describing the type of language
     element they are.
     """
-    
+
     annotations = []
     """
     Subclasses should set this to an list of options that annotate the language
     element, such as 'sealed' or 'open' regarding classes. They must also be
     listed in option_spec, though not all options need to be annotations.
     """
-    
+
     option_spec = dict(DescDirective.option_spec.items() + {
         'synopsis': DIRECTIVES.unchanged,
     }.items())
-    
+
     doc_field_types = [
         Field('summary', label="Summary", has_arg=False,
             names=('summary')),
@@ -170,14 +170,14 @@ class DylanDescDirective (DescDirective):
     required_arguments = 1
     optional_arguments = 0
     final_argument_whitespace = False
-    
+
     def fullname (self, partial):
         """
         Subclasses return the full, qualified name of this language element,
         including specializer.
         """
         return partial
-    
+
     def handle_signature (self, sigs, signode):
         signode['classes'].append('dylan-api')
         partial = sigs.strip()
@@ -187,7 +187,7 @@ class DylanDescDirective (DescDirective):
         (library, module, binding) = fullname_parts(fullname)
         dispname = binding or module or library
         signode += SPHINX_NODES.desc_name(dispname, dispname)
-        
+
         # Annotations
         annotations = []
         for opt in self.annotations:
@@ -198,10 +198,10 @@ class DylanDescDirective (DescDirective):
         annotlist = ' '.join(annotations)
         signode += RST_NODES.Text(' ')
         signode += SPHINX_NODES.desc_annotation(annotlist, annotlist)
-        
+
         signode['fullname'] = fullname
         return (fullname, partial, dispname)
-    
+
     def add_target_and_index (self, name_tuple, sigs, signode):
         # note target
         fullname = name_tuple[0]
@@ -214,7 +214,7 @@ class DylanDescDirective (DescDirective):
             signode['ids'].append(fullid)
             signode['first'] = (not self.names)
             self.state.document.note_explicit_target(signode)
-            
+
             # Check if already defined
             inventory = self.env.domaindata['dylan']['objects']
             if fullid in inventory:
@@ -223,11 +223,11 @@ class DylanDescDirective (DescDirective):
                         .format(self.objtype, fullname,
                                 self.env.doc2path(inventory[fullid][0])),
                     line=self.lineno)
-            
+
             # Add target
             inventory[fullid] = (self.env.docname, self.objtype,
                                  fullname, shortname, specname, self.display_name)
-            
+
             # Add target by specname
             fullids = self.env.domaindata['dylan']['fullids']
             fullids.setdefault(specid, []).append(fullid)
@@ -237,18 +237,18 @@ class DylanDescDirective (DescDirective):
         if shortname != specname:
             indexentry += "; {0}".format(specname)
         self.indexnode['entries'].append(('single', indexentry, fullid, ''))
-    
+
     def warn_and_raise_error (self, error):
         src, srcline = self.state.state_machine.get_source_and_line()
         msg = self.state.reporter.warning(error.args[0], line=srcline)
         raise error
-    
+
     def err_and_raise_error (self, error):
         src, srcline = self.state.state_machine.get_source_and_line()
         msg = self.state.reporter.error(error.args[0], line=srcline)
         raise error
 
-    
+
 class DylanLibraryDesc (DylanDescDirective):
     """A Dylan library."""
 
@@ -267,12 +267,12 @@ class DylanLibraryDesc (DylanDescDirective):
             (lib, mod, bind) = fullname_parts(self.names[0][0])
             set_current_library(env, lib)
 
-        
+
 class DylanModuleDesc (DylanDescDirective):
     """A Dylan module."""
 
     display_name = "module"
-    
+
     option_spec = dict(DylanDescDirective.option_spec.items() + {
         'library': DIRECTIVES.unchanged,
     }.items())
@@ -284,7 +284,7 @@ class DylanModuleDesc (DylanDescDirective):
             return module_fullname(env, partial, library=library_option)
         except ValueError as ve:
             self.warn_and_raise_error(ve)
-    
+
     def before_content (self):
         env = self.state.document.settings.env
         if len(self.names) > 0 and len(self.names[0]) > 0:
@@ -295,11 +295,11 @@ class DylanModuleDesc (DylanDescDirective):
 
 class DylanBindingDesc (DylanDescDirective):
     """A Dylan binding."""
-    
+
     annotations = [
         'adjectives'
     ] + DylanDescDirective.annotations
-    
+
     option_spec = dict(DylanDescDirective.option_spec.items() + {
         'library': DIRECTIVES.unchanged,
         'module': DIRECTIVES.unchanged,
@@ -320,7 +320,7 @@ class DylanBindingDesc (DylanDescDirective):
                     library=library_option, module=module_option)
         except ValueError as ve:
             self.warn_and_raise_error(ve)
-    
+
     def before_content (self):
         env = self.state.document.settings.env
         if len(self.names) > 0 and len(self.names[0]) > 0:
@@ -333,12 +333,12 @@ class DylanClassDesc (DylanBindingDesc):
     """A Dylan class."""
 
     display_name = "class"
-    
+
     annotations = [
         'open', 'primary', 'free', 'abstract', 'concrete', 'instantiable',
         'uninstantiable', 'sealed'
     ] + DylanBindingDesc.annotations
-    
+
     option_spec = dict(DylanBindingDesc.option_spec.items() + {
         'open': DIRECTIVES.flag,
         'primary': DIRECTIVES.flag,
@@ -384,11 +384,11 @@ class DylanGenFuncDesc (DylanFunctionDesc):
     """A Dylan generic function."""
 
     display_name = "generic function"
-    
+
     annotations = [
         'sealed', 'open'
     ] + DylanFunctionDesc.annotations
-    
+
     option_spec = dict(DylanFunctionDesc.option_spec.items() + {
         'sealed': DIRECTIVES.flag,
         'open': DIRECTIVES.flag
@@ -399,16 +399,16 @@ class DylanMethodDesc (DylanFunctionDesc):
     """A Dylan method in a generic function."""
 
     display_name = "method"
-    
+
     annotations = [
         'sealed'
     ] + DylanFunctionDesc.annotations
-    
+
     option_spec = dict(DylanFunctionDesc.option_spec.items() + {
         'specializer': DIRECTIVES.unchanged,
         'sealed': DIRECTIVES.flag,
     }.items())
-    
+
     def fullname (self, partial):
         basename = super(DylanMethodDesc, self).fullname(partial)
         specializer = self.options.get('specializer', None)
@@ -470,9 +470,9 @@ class DylanMacroDesc (DylanBindingDesc):
     """A Dylan macro."""
 
     final_argument_whitespace = True
-    
+
     display_name = "macro"
-    
+
     annotations = [
         'statement', 'function', 'defining', 'macro-type'
     ] + DylanBindingDesc.annotations
@@ -504,7 +504,7 @@ class DylanObjectsIndex (Index):
     Index for language objects.
     Basically looks like the following, assuming Sphinx adds "extras" to it
     in parentheses. ::
-    
+
       tan (generic-function)
       format-out
         io:format-out:format-out (generic function)
@@ -513,11 +513,11 @@ class DylanObjectsIndex (Index):
         dylan:dylan:min(<integer>) (method)
         dylan:dylan:min(<float>) (method)
     """
-    
+
     name = "apiindex"
     localname = "API Index"
     shortname = "api"
-    
+
     def generate (self, docnames=None):
         # Dictionary of first letter -> array of entry records with that letter
         content = {}
@@ -548,7 +548,7 @@ class DylanObjectsIndex (Index):
             # i.e. short name + specializer a.k.a. specname
             subtype = 0;
             indexname = specname
-            
+
             if prev_shortname == shortname:
                 # We have a duplicate name
                 prev_entry = entries[-1]
@@ -556,7 +556,7 @@ class DylanObjectsIndex (Index):
                     # Previous entry was a normal entry, so this is the first
                     # subentry. Replace previous entry with an unlinked header.
                     entries[-1] = [shortname, 1, "", "", "", "", ""]
-                    
+
                     # Previous entry is now a header, so add the linkable original
                     # as the first subentry, but use the full name instead of the
                     # index name.
@@ -624,12 +624,12 @@ def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
         if linktitle is None:
             keyparts = linkkey.split(':')
             linktitle = keyparts[-1]
-        
+
         esc_linktitle = linktitle.replace("<", "\x1A")
         targ_linkkey = name_to_id(linkkey)
         new_text = "{0} <{1}>".format(esc_linktitle, targ_linkkey)
         new_rawtext = ":{0}:`{1} <{2}>`".format(name, esc_linktitle, targ_linkkey)
-        
+
         do_xref = DylanXRefRole()
         return do_xref(name, new_rawtext, new_text, lineno, inliner, options, context)
     else:
@@ -639,7 +639,7 @@ def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
             line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
-    
+
 
 #
 # Domain definition
@@ -649,7 +649,7 @@ def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
 class DylanDomain (Domain):
     name = 'dylan'
     label = 'Dylan'
-    
+
     roles = {
         'drm': drm_link,
         'lib': desc_link,
@@ -663,7 +663,7 @@ class DylanDomain (Domain):
         'macro': desc_link,
         'type': desc_link,
     }
-    
+
     directives = {
         'current-library': DylanCurrentLibrary,
         'current-module': DylanCurrentModule,
@@ -679,7 +679,7 @@ class DylanDomain (Domain):
         'macro': DylanMacroDesc,
         'type': DylanTypeDesc,
     }
-    
+
     object_types = {
         'library':  ObjType('library', 'lib'),
         'module':   ObjType('module', 'mod'),
@@ -693,7 +693,7 @@ class DylanDomain (Domain):
         'macro':    ObjType('macro', 'macro'),
         'type':     ObjType('type', 'type'),
     }
-    
+
     initial_data = {
         'fullids': {},
             # specid -> [fullid, ...]
@@ -709,11 +709,11 @@ class DylanDomain (Domain):
                                DylanObjectsIndex.name)
         }
     }
-    
+
     indices = [
         DylanObjectsIndex
     ]
-    
+
     def clear_doc(self, docname):
         for fullid, (objects_docname, _, _, _, specname, _) in self.data['objects'].items():
             if objects_docname == docname:
@@ -721,7 +721,7 @@ class DylanDomain (Domain):
                 specid = name_to_id(specname)
                 if fullid in self.data['fullids'].get(specid, {}):
                     self.data['fullids'][specid].remove(fullid)
-    
+
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         if typ == 'ref':
             nodeargs = self.data['refnodes'].get(target, None)
@@ -747,7 +747,7 @@ class DylanDomain (Domain):
                 module = node.dylan_curmodule
             else:
                 module = None
-                
+
             # Use current library and module
             if colons == 2:
                 fulltarget = target
@@ -759,7 +759,7 @@ class DylanDomain (Domain):
                     module_id = name_to_id(module)
                     if colons == 0:
                         fulltarget = "{0}:{1}:{2}".format(library_id, module_id, target)
-                
+
             # Fetch link info based on current library and module and passed target
             nodeargs = self.data['objects'].get(fulltarget, None)
 
@@ -775,14 +775,14 @@ class DylanDomain (Domain):
                 todocname = nodeargs[0]
                 return make_refnode(builder, fromdocname, todocname, fulltarget, contnode)
 
-        return None    
-    
+        return None
+
     def get_objects(self):
         for kv in self.data['objects'].iteritems():
             (fullid, (docname, objtype, fullname, shortname, specname, displaytype)) = kv
             yield (fullname, specname, objtype, docname, fullid, 0)
-    
-    
+
+
 def setup (app):
     app.add_config_value('dylan_drm_url', 'http://opendylan.org/books/drm/', 'html')
     app.add_domain(DylanDomain)
