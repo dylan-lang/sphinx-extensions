@@ -7,7 +7,7 @@ Copyright (c) 2011 Open Dylan Maintainers. All rights reserved.
 """
 
 import sys as SYS, os as OS, re as RE
-from urlparse import *
+from urllib.parse import *
 
 import docutils.nodes as RST_NODES
 import docutils.parsers.rst.directives as DIRECTIVES
@@ -22,7 +22,7 @@ from sphinx.roles import XRefRole
 from sphinx.util.docfields import Field, GroupedField, TypedField
 from sphinx.util.nodes import make_refnode
 
-import drmindex
+from . import drmindex
 
 
 #
@@ -152,9 +152,9 @@ class DylanDescDirective (DescDirective):
     listed in option_spec, though not all options need to be annotations.
     """
 
-    option_spec = dict(DescDirective.option_spec.items() + {
+    option_spec = dict(list(DescDirective.option_spec.items()) + list({
         'synopsis': DIRECTIVES.unchanged,
-    }.items())
+    }.items()))
 
     doc_field_types = [
         Field('summary', label="Summary", has_arg=False,
@@ -233,7 +233,7 @@ class DylanDescDirective (DescDirective):
             fullids.setdefault(specid, []).append(fullid)
 
         # add index
-        indexentry = unicode(shortname)
+        indexentry = str(shortname)
         if shortname != specname:
             indexentry += "; {0}".format(specname)
         self.indexnode['entries'].append(('single', indexentry, fullid, ''))
@@ -273,9 +273,9 @@ class DylanModuleDesc (DylanDescDirective):
 
     display_name = "module"
 
-    option_spec = dict(DylanDescDirective.option_spec.items() + {
+    option_spec = dict(list(DylanDescDirective.option_spec.items()) + list({
         'library': DIRECTIVES.unchanged,
-    }.items())
+    }.items()))
 
     def fullname (self, partial):
         env = self.state.document.settings.env
@@ -300,11 +300,11 @@ class DylanBindingDesc (DylanDescDirective):
         'adjectives'
     ] + DylanDescDirective.annotations
 
-    option_spec = dict(DylanDescDirective.option_spec.items() + {
+    option_spec = dict(list(DylanDescDirective.option_spec.items()) + list({
         'library': DIRECTIVES.unchanged,
         'module': DIRECTIVES.unchanged,
         'adjectives': DIRECTIVES.unchanged,
-    }.items())
+    }.items()))
 
     doc_field_types = [
         Field('example', label="Example", has_arg=False,
@@ -339,7 +339,7 @@ class DylanClassDesc (DylanBindingDesc):
         'uninstantiable', 'sealed'
     ] + DylanBindingDesc.annotations
 
-    option_spec = dict(DylanBindingDesc.option_spec.items() + {
+    option_spec = dict(list(DylanBindingDesc.option_spec.items()) + list({
         'open': DIRECTIVES.flag,
         'primary': DIRECTIVES.flag,
         'free': DIRECTIVES.flag,
@@ -348,7 +348,7 @@ class DylanClassDesc (DylanBindingDesc):
         'concrete': DIRECTIVES.flag,
         'instantiable': DIRECTIVES.flag,
         'uninstantiable': DIRECTIVES.flag,
-    }.items())
+    }.items()))
 
     doc_field_types = [
         Field('superclasses', label="Superclasses", has_arg=False,
@@ -389,10 +389,10 @@ class DylanGenFuncDesc (DylanFunctionDesc):
         'sealed', 'open'
     ] + DylanFunctionDesc.annotations
 
-    option_spec = dict(DylanFunctionDesc.option_spec.items() + {
+    option_spec = dict(list(DylanFunctionDesc.option_spec.items()) + list({
         'sealed': DIRECTIVES.flag,
         'open': DIRECTIVES.flag
-    }.items())
+    }.items()))
 
 
 class DylanMethodDesc (DylanFunctionDesc):
@@ -404,10 +404,10 @@ class DylanMethodDesc (DylanFunctionDesc):
         'sealed'
     ] + DylanFunctionDesc.annotations
 
-    option_spec = dict(DylanFunctionDesc.option_spec.items() + {
+    option_spec = dict(list(DylanFunctionDesc.option_spec.items()) + list({
         'specializer': DIRECTIVES.unchanged,
         'sealed': DIRECTIVES.flag,
-    }.items())
+    }.items()))
 
     def fullname (self, partial):
         basename = super(DylanMethodDesc, self).fullname(partial)
@@ -477,12 +477,12 @@ class DylanMacroDesc (DylanBindingDesc):
         'statement', 'function', 'defining', 'macro-type'
     ] + DylanBindingDesc.annotations
 
-    option_spec = dict(DylanBindingDesc.option_spec.items() + {
+    option_spec = dict(list(DylanBindingDesc.option_spec.items()) + list({
         'statement': DIRECTIVES.flag,
         'function': DIRECTIVES.flag,
         'defining': DIRECTIVES.flag,
         'macro-type': DIRECTIVES.unchanged,
-    }.items())
+    }.items()))
 
     doc_field_types = [
         TypedField('parameters', label="Parameters",
@@ -523,7 +523,7 @@ class DylanObjectsIndex (Index):
         content = {}
 
         # list of all objects, sorted by short name then by library/module name
-        objects = sorted(self.domain.data['objects'].iteritems(),
+        objects = sorted(iter(self.domain.data['objects'].items()),
                          key=lambda kv: "{0} {1}".format(kv[1][3], kv[1][2]).lower())
 
         # Add entries
@@ -583,7 +583,7 @@ class DylanObjectsIndex (Index):
         collapse = len(content) - num_toplevels < num_toplevels
 
         # sort by index character
-        content = sorted(content.iteritems())
+        content = sorted(content.items())
 
         return (content, collapse)
 
@@ -715,7 +715,7 @@ class DylanDomain (Domain):
     ]
 
     def clear_doc(self, docname):
-        for fullid, (objects_docname, _, _, _, specname, _) in self.data['objects'].items():
+        for fullid, (objects_docname, _, _, _, specname, _) in list(self.data['objects'].items()):
             if objects_docname == docname:
                 del self.data['objects'][fullid]
                 specid = name_to_id(specname)
@@ -778,7 +778,7 @@ class DylanDomain (Domain):
         return None
 
     def get_objects(self):
-        for kv in self.data['objects'].iteritems():
+        for kv in self.data['objects'].items():
             (fullid, (docname, objtype, fullname, shortname, specname, displaytype)) = kv
             yield (fullname, specname, objtype, docname, fullid, 0)
 
