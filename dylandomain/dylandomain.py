@@ -465,6 +465,14 @@ class DylanVariableDesc (DylanConstOrVarDesc):
 
     display_name = "variable"
 
+    annotations = [
+        'thread'
+    ] + DylanConstOrVarDesc.annotations
+
+    option_spec = dict(DylanConstOrVarDesc.option_spec.items() + {
+        'thread': DIRECTIVES.flag,
+    }.items())
+
 
 class DylanMacroDesc (DylanBindingDesc):
     """A Dylan macro."""
