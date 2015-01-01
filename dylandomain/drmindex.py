@@ -201,7 +201,7 @@ index = {
   "curry": "Functional_Operations#curry",
   "rcurry": "Functional_Operations#rcurry",
   "always": "Functional_Operations#always",
-  "Numbers": "Lexical_Grammar#XREF-2105",
+  "numbers": "Lexical_Grammar#XREF-2105",
   "let": "Local_Declaration_Macros#let",
   "local": "Local_Declaration_Macros#local",
   "handler": "Local_Declaration_Macros#let_handler",
