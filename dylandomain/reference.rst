@@ -101,7 +101,7 @@ Directives with content
          :supers: `<array>`:class
          :keyword size:  An instance of `<integer>`:class: specifying the size
                          of the vector. The default value is ``0``.
-         :keyword fill:
+         :keyword required fill:
              An instance of `<object>`:class: specifying the initial value for
              each element of the vector. The default value is ``#f``.
 
@@ -295,7 +295,8 @@ the directive and any directive options by a blank line.
 
    An init-keyword of a class. This doc field may appear multiple times.
 
-   :Syntax:    ``:keyword NAME: DESCRIPTION``
+   :Syntax 1:    ``:keyword NAME: DESCRIPTION``
+   :Syntax 2:    ``:keyword required NAME: DESCRIPTION``
    :Synonyms:  ``:init-keyword:``
 
    See `dylan:class::`_ for an example.

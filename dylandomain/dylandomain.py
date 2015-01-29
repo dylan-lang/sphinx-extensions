@@ -353,7 +353,7 @@ class DylanClassDesc (DylanBindingDesc):
     doc_field_types = [
         Field('superclasses', label="Superclasses", has_arg=False,
             names=('supers', 'superclasses', 'super', 'superclass')),
-        GroupedField('keyword', label="Init-Keywords",
+        TypedField('keyword', label="Init-Keywords",
             names=('keyword', 'init-keyword')),
         GroupedField('slots', label="Slots",
             names=('slot', 'getter')),
