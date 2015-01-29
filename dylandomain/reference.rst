@@ -39,7 +39,7 @@ Configurables
 ^^^^^^^^^^^^^^^^^^^
 
    A file listing Dylan names and the corresponding `Dylan Reference Manual`:t:
-   partial URLs. Each line is a correspondance. The first word is the Dylan
+   partial URLs. Each line is a correspondence. The first word is the Dylan
    name, followed by whitespace, then the remainder is the partial URL. Defaults
    to partial URLs corresponding to the copy of the `Dylan Reference Manual`:t:
    at `<http://opendylan.org>`_.
