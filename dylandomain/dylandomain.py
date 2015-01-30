@@ -161,6 +161,8 @@ class DylanDescDirective (DescDirective):
             names=('summary')),
         Field('discussion', label="Discussion", has_arg=False,
             names=('discussion', 'description')),
+        Field('seealso', label="See also", has_arg=False,
+            names=('seealso',)),
     ] + DescDirective.doc_field_types
 
     # It is not documented, but self.names is a series of tuples. Each tuple is

@@ -66,7 +66,7 @@ Directives with content
 
    :Syntax:       ``.. dylan:library:: NAME``
    :Options:      None
-   :Doc Fields:   `:summary:`_, `:discussion:`_
+   :Doc Fields:   `:summary:`_, `:discussion:`_, `:seealso:`_
    :References:   `:dylan:lib:`_
 
 ``dylan:module::``
@@ -77,7 +77,7 @@ Directives with content
 
    :Syntax:       ``.. dylan:module:: NAME``
    :Options:      `:library:`_
-   :Doc Fields:   `:summary:`_, `:discussion:`_
+   :Doc Fields:   `:summary:`_, `:discussion:`_, `:seealso:`_
    :References:   `:dylan:mod:`_
 
 ``dylan:class::``
@@ -90,7 +90,8 @@ Directives with content
                   `:concrete:`_, `:instantiable:`_, `:uninstantiable:`_,
                   `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:supers:`_, `:keyword:`_, `:slot:`_, `:summary:`_,
-                  `:discussion:`_, `:conditions:`_, `:operations:`_, `:example:`_
+                  `:discussion:`_, `:conditions:`_, `:operations:`_, `:example:`_,
+                  `:seealso:`_
    :References:   `:dylan:class:`_
 
    Example::
@@ -114,7 +115,7 @@ Directives with content
    :Options:      `:open:`_, `:sealed:`_, `:adjectives:`_, `:library:`_,
                   `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_,
-                  `:discussion:`_, `:conditions:`_, `:example:`_
+                  `:discussion:`_, `:conditions:`_, `:example:`_, `:seealso:`_
    :References:   `:dylan:gf:`_
 
    Example::
@@ -137,7 +138,7 @@ Directives with content
    :Options:      `:specializer:`_, `:sealed:`_, `:adjectives:`_, `:library:`_,
                   `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_,
-                  `:discussion:`_, `:conditions:`_, `:example:`_
+                  `:discussion:`_, `:conditions:`_, `:example:`_, `:seealso:`_
    :References:   `:dylan:meth:`_
 
    References to a method must be disambiguated by enclosing *SPECIALIZER* in
@@ -168,7 +169,7 @@ Directives with content
    :Syntax:       ``.. dylan:function:: NAME``
    :Options:      `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_,
-                  `:discussion:`_, `:conditions:`_, `:example:`_
+                  `:discussion:`_, `:conditions:`_, `:example:`_, `:seealso:`_
    :References:   `:dylan:func:`_
 
 ``dylan:primitive::``
@@ -179,7 +180,7 @@ Directives with content
    :Syntax:       `.. dylan:primitive:: NAME``
    :Options:      `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_,
-                  `:discussion:`_, `:conditions:`_, `:example:`_
+                  `:discussion:`_, `:conditions:`_, `:example:`_, `:seealso:`_
    :References:   `:dylan:prim:`_
 
 ``dylan:constant::``
@@ -190,7 +191,7 @@ Directives with content
    :Syntax:       ``.. dylan:constant:: NAME``
    :Options:      `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:type:`_, `:value: (2)`_, `:summary:`_, `:discussion:`_,
-                  `:example:`_
+                  `:example:`_, `:seealso:`_
    :References:   `:dylan:const:`_
 
 ``dylan:type::``
@@ -201,7 +202,8 @@ Directives with content
    :Syntax:       ``.. dylan:type:: NAME``
    :Options:      `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:type:`_, `:value: (2)`_, `:summary:`_, `:discussion:`_,
-                  `:example:`_, `:supertypes:`_, `:operations:`_, `:equivalent:`_
+                  `:example:`_, `:supertypes:`_, `:operations:`_, `:equivalent:`_,
+                  `:seealso:`_
    :References:   `:dylan:type:`_
 
 ``dylan:variable::``
@@ -212,7 +214,7 @@ Directives with content
    :Syntax:       ``.. dylan:variable:: NAME``
    :Options:      `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:type:`_, `:value: (2)`_, `:summary:`_, `:discussion:`_,
-                  `:example:`_
+                  `:example:`_, `:seealso:`_
    :References:   `:dylan:var:`_
 
 ``dylan:macro::``
@@ -224,7 +226,7 @@ Directives with content
    :Options:      `:statement:`_, `:function:`_, `:defining:`_, `:macro-type:`_,
                   `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:macrocall:`_, `:summary:`_,
-                  `:discussion:`_, `:example:`_
+                  `:discussion:`_, `:example:`_, `:seealso:`_
    :References:   `:dylan:macro:`_
 
 
@@ -273,6 +275,14 @@ the directive and any directive options by a blank line.
 
    :Syntax:    ``:discussion: DISCUSSION``
    :Synonyms:  ``:description:``
+
+``:seealso:``
+^^^^^^^^^^^^^
+
+   A set of items that are related to the current element.
+
+   :Syntax:    ``:seealso: OTHER ELEMENTS``
+   :Synonyms:  None
 
 ``:example:``
 ^^^^^^^^^^^^^
