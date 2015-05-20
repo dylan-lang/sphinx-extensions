@@ -42,8 +42,10 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
         href = urljoin(base_url, location)
 
         set_classes(options)
-        node = RST_NODES.reference(rawtext, linktext, refuri=href, **options)
-        return [node], []
+        textnode = RST_NODES.literal(rawtext, linktext)
+        linknode = RST_NODES.reference('', '', refuri=href, **options)
+        linknode += textnode
+        return [linknode], []
     else:
         msg = inliner.reporter.error(
             'Invalid syntax for :dylan:drm: role; '
