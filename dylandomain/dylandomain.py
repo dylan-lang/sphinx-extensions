@@ -42,7 +42,7 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
         href = urljoin(base_url, location)
 
         set_classes(options)
-        textnode = RST_NODES.literal(rawtext, linktext)
+        textnode = RST_NODES.literal(rawtext, linktext, classes=['xref', 'drm'])
         linknode = RST_NODES.reference('', '', refuri=href, **options)
         linknode += textnode
         return [linknode], []
