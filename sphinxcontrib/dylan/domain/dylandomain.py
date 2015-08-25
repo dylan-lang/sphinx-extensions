@@ -793,8 +793,3 @@ class DylanDomain (Domain):
         for kv in self.data['objects'].iteritems():
             (fullid, (docname, objtype, fullname, shortname, specname, displaytype)) = kv
             yield (fullname, specname, objtype, docname, fullid, 0)
-
-
-def setup (app):
-    app.add_config_value('dylan_drm_url', 'http://opendylan.org/books/drm/', 'html')
-    app.add_domain(DylanDomain)
