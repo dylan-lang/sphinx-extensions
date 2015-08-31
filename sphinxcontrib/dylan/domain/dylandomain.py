@@ -21,6 +21,7 @@ from sphinx.directives import DescDirective
 from sphinx.roles import XRefRole
 from sphinx.util.docfields import Field, GroupedField, TypedField
 from sphinx.util.nodes import make_refnode
+from sphinx.util.pycompat import htmlescape
 
 import drmindex
 
@@ -792,4 +793,4 @@ class DylanDomain (Domain):
     def get_objects(self):
         for kv in self.data['objects'].iteritems():
             (fullid, (docname, objtype, fullname, shortname, specname, displaytype)) = kv
-            yield (fullname, specname, objtype, docname, fullid, 0)
+            yield (htmlescape(fullname), specname, objtype, docname, fullid, 0)
