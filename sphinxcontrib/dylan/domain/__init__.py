@@ -8,7 +8,7 @@ Created by Dustin Voss on 2011-11-10.
 Copyright (c) 2011 Open Dylan Maintainers. All rights reserved.
 """
 
-from dylandomain import DylanDomain
+from .dylandomain import DylanDomain
 
 def setup (app):
     app.add_config_value('dylan_drm_url', 'http://opendylan.org/books/drm/', 'html')

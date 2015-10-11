@@ -7,7 +7,10 @@ Copyright (c) 2011 Open Dylan Maintainers. All rights reserved.
 """
 
 import sys as SYS, os as OS, re as RE
-from urlparse import *
+try:
+    from urlparse import urljoin
+except ImportError:
+    from urllib.parse import urljoin
 
 import docutils.nodes as RST_NODES
 import docutils.parsers.rst.directives as DIRECTIVES
@@ -23,7 +26,8 @@ from sphinx.util.docfields import Field, GroupedField, TypedField
 from sphinx.util.nodes import make_refnode
 from sphinx.util.pycompat import htmlescape
 
-import drmindex
+
+from . import drmindex
 
 
 #
@@ -155,9 +159,10 @@ class DylanDescDirective (DescDirective):
     listed in option_spec, though not all options need to be annotations.
     """
 
-    option_spec = dict(DescDirective.option_spec.items() + {
+    option_spec = dict(DescDirective.option_spec.items())
+    option_spec.update(dict({
         'synopsis': DIRECTIVES.unchanged,
-    }.items())
+    }.items()))
 
     doc_field_types = [
         Field('summary', label="Summary", has_arg=False,
@@ -238,9 +243,9 @@ class DylanDescDirective (DescDirective):
             fullids.setdefault(specid, []).append(fullid)
 
         # add index
-        indexentry = unicode(shortname)
+        indexentry = str(shortname)
         if shortname != specname:
-            indexentry += "; {0}".format(specname)
+            indexentry += u"; {0}".format(specname)
         self.indexnode['entries'].append(('single', indexentry, fullid, ''))
 
     def warn_and_raise_error (self, error):
@@ -278,9 +283,10 @@ class DylanModuleDesc (DylanDescDirective):
 
     display_name = "module"
 
-    option_spec = dict(DylanDescDirective.option_spec.items() + {
+    option_spec = dict(DylanDescDirective.option_spec.items())
+    option_spec.update(dict({
         'library': DIRECTIVES.unchanged,
-    }.items())
+    }.items()))
 
     def fullname (self, partial):
         env = self.state.document.settings.env
@@ -305,11 +311,12 @@ class DylanBindingDesc (DylanDescDirective):
         'adjectives'
     ] + DylanDescDirective.annotations
 
-    option_spec = dict(DylanDescDirective.option_spec.items() + {
+    option_spec = dict(DylanDescDirective.option_spec.items())
+    option_spec.update(dict({
         'library': DIRECTIVES.unchanged,
         'module': DIRECTIVES.unchanged,
         'adjectives': DIRECTIVES.unchanged,
-    }.items())
+    }.items()))
 
     doc_field_types = [
         Field('example', label="Example", has_arg=False,
@@ -344,7 +351,8 @@ class DylanClassDesc (DylanBindingDesc):
         'uninstantiable', 'sealed'
     ] + DylanBindingDesc.annotations
 
-    option_spec = dict(DylanBindingDesc.option_spec.items() + {
+    option_spec = dict(DylanBindingDesc.option_spec.items())
+    option_spec.update(dict({
         'open': DIRECTIVES.flag,
         'primary': DIRECTIVES.flag,
         'free': DIRECTIVES.flag,
@@ -353,7 +361,7 @@ class DylanClassDesc (DylanBindingDesc):
         'concrete': DIRECTIVES.flag,
         'instantiable': DIRECTIVES.flag,
         'uninstantiable': DIRECTIVES.flag,
-    }.items())
+    }.items()))
 
     doc_field_types = [
         Field('superclasses', label="Superclasses", has_arg=False,
@@ -394,10 +402,11 @@ class DylanGenFuncDesc (DylanFunctionDesc):
         'sealed', 'open'
     ] + DylanFunctionDesc.annotations
 
-    option_spec = dict(DylanFunctionDesc.option_spec.items() + {
+    option_spec = dict(DylanFunctionDesc.option_spec.items())
+    option_spec.update(dict({
         'sealed': DIRECTIVES.flag,
         'open': DIRECTIVES.flag
-    }.items())
+    }.items()))
 
 
 class DylanMethodDesc (DylanFunctionDesc):
@@ -409,10 +418,11 @@ class DylanMethodDesc (DylanFunctionDesc):
         'sealed'
     ] + DylanFunctionDesc.annotations
 
-    option_spec = dict(DylanFunctionDesc.option_spec.items() + {
+    option_spec = dict(DylanFunctionDesc.option_spec.items())
+    option_spec.update(dict({
         'specializer': DIRECTIVES.unchanged,
         'sealed': DIRECTIVES.flag,
-    }.items())
+    }.items()))
 
     def fullname (self, partial):
         basename = super(DylanMethodDesc, self).fullname(partial)
@@ -474,9 +484,10 @@ class DylanVariableDesc (DylanConstOrVarDesc):
         'thread'
     ] + DylanConstOrVarDesc.annotations
 
-    option_spec = dict(DylanConstOrVarDesc.option_spec.items() + {
+    option_spec = dict(DylanConstOrVarDesc.option_spec.items())
+    option_spec.update(dict({
         'thread': DIRECTIVES.flag,
-    }.items())
+    }.items()))
 
 
 class DylanMacroDesc (DylanBindingDesc):
@@ -490,12 +501,13 @@ class DylanMacroDesc (DylanBindingDesc):
         'statement', 'function', 'defining', 'macro-type'
     ] + DylanBindingDesc.annotations
 
-    option_spec = dict(DylanBindingDesc.option_spec.items() + {
+    option_spec = dict(DylanBindingDesc.option_spec.items())
+    option_spec.update(dict({
         'statement': DIRECTIVES.flag,
         'function': DIRECTIVES.flag,
         'defining': DIRECTIVES.flag,
         'macro-type': DIRECTIVES.unchanged,
-    }.items())
+    }.items()))
 
     doc_field_types = [
         TypedField('parameters', label="Parameters",
@@ -536,7 +548,7 @@ class DylanObjectsIndex (Index):
         content = {}
 
         # list of all objects, sorted by short name then by library/module name
-        objects = sorted(self.domain.data['objects'].iteritems(),
+        objects = sorted(self.domain.data['objects'].items(),
                          key=lambda kv: "{0} {1}".format(kv[1][3], kv[1][2]).lower())
 
         # Add entries
@@ -596,7 +608,7 @@ class DylanObjectsIndex (Index):
         collapse = len(content) - num_toplevels < num_toplevels
 
         # sort by index character
-        content = sorted(content.iteritems())
+        content = sorted(content.items())
 
         return (content, collapse)
 
@@ -791,6 +803,6 @@ class DylanDomain (Domain):
         return None
 
     def get_objects(self):
-        for kv in self.data['objects'].iteritems():
+        for kv in self.data['objects'].items():
             (fullid, (docname, objtype, fullname, shortname, specname, displaytype)) = kv
             yield (htmlescape(fullname), specname, objtype, docname, fullid, 0)
