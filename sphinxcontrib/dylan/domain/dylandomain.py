@@ -3,7 +3,7 @@
 dylandomain.py
 
 Created by Dustin Voss on 2011-11-10.
-Copyright (c) 2011 Open Dylan Maintainers. All rights reserved.
+Copyright (c) 2011-2016 Open Dylan Maintainers. All rights reserved.
 """
 
 import sys as SYS, os as OS, re as RE

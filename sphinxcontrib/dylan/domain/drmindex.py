@@ -2,7 +2,7 @@
 """,
 drmindex.py
 
-Copyright (c) 2011 Open Dylan Maintainers. All rights reserved.
+Copyright (c) 2011-2016 Open Dylan Maintainers. All rights reserved.
 """,
 
 index = {
