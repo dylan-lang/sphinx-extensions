@@ -24,7 +24,6 @@ from sphinx.directives import DescDirective
 from sphinx.roles import XRefRole
 from sphinx.util.docfields import Field, GroupedField, TypedField
 from sphinx.util.nodes import make_refnode
-from sphinx.util.pycompat import htmlescape
 
 
 from . import drmindex
@@ -812,4 +811,4 @@ class DylanDomain (Domain):
         for kv in self.data['objects'].items():
             (fullid, (docname, objtype, fullname, shortname, specname, displaytype)) = kv
             objtype = REMAP_TYPES.get(objtype, objtype)
-            yield (htmlescape(shortname), specname, objtype, docname, fullid, 0)
+            yield (shortname, specname, objtype, docname, fullid, 0)
