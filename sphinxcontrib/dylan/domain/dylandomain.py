@@ -807,7 +807,8 @@ class DylanDomain (Domain):
         # for intersphinx. This also feeds into tools like doc2dash
         # which only expect a fairly standard set of object types.
         REMAP_TYPES = {
-            'generic-function': 'function'
+            'generic-function': 'function',
+            'primitive': 'function'
         }
         for kv in self.data['objects'].items():
             (fullid, (docname, objtype, fullname, shortname, specname, displaytype)) = kv
