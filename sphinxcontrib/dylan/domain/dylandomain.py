@@ -685,6 +685,7 @@ class DylanDomain (Domain):
         'meth': desc_link,
         'gf': desc_link,
         'macro': desc_link,
+        'prim': desc_link,
         'type': desc_link,
     }
 
