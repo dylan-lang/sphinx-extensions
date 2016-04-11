@@ -414,13 +414,14 @@ class DylanMethodDesc (DylanFunctionDesc):
     display_name = "method"
 
     annotations = [
-        'sealed'
+        'sealed', 'open'
     ] + DylanFunctionDesc.annotations
 
     option_spec = dict(DylanFunctionDesc.option_spec.items())
     option_spec.update(dict({
         'specializer': DIRECTIVES.unchanged,
         'sealed': DIRECTIVES.flag,
+        'open': DIRECTIVES.flag
     }.items()))
 
     def fullname (self, partial):
