@@ -245,7 +245,8 @@ class DylanDescDirective (DescDirective):
         indexentry = str(shortname)
         if shortname != specname:
             indexentry += u"; {0}".format(specname)
-        self.indexnode['entries'].append(('single', indexentry, fullid, ''))
+        self.indexnode['entries'].append(('single', indexentry,
+                                          fullid, '', None))
 
     def warn_and_raise_error (self, error):
         src, srcline = self.state.state_machine.get_source_and_line()
