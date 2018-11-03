@@ -11,5 +11,5 @@ Copyright (c) 2011-2016 Open Dylan Maintainers. All rights reserved.
 from .dylandomain import DylanDomain
 
 def setup (app):
-    app.add_config_value('dylan_drm_url', 'http://opendylan.org/books/drm/', 'html')
+    app.add_config_value('dylan_drm_url', 'https://opendylan.org/books/drm/', 'html')
     app.add_domain(DylanDomain)
