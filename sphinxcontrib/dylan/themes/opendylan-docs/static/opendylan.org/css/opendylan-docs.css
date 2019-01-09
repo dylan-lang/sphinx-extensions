@@ -18,12 +18,6 @@ em.property {
   font-style: normal;
 }
 
-/* work around https://github.com/snide/sphinx_rtd_theme/issues/149 */
-/* copied from https://github.com/Lasagne/Lasagne/pull/282/files */
-.rst-content table.field-list .field-body {
-    padding-top: 8px;
-}
-
 /* work around unreported bug where lists within a field list body
    get an incorrect line height */
 .rst-content td.field-body ul {
