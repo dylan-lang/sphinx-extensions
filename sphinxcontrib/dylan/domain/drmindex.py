@@ -2,7 +2,7 @@
 """,
 drmindex.py
 
-Copyright (c) 2011-2016 Open Dylan Maintainers. All rights reserved.
+Copyright (c) 2011-2019 Open Dylan Maintainers. All rights reserved.
 """,
 
 index = {
@@ -268,9 +268,10 @@ index = {
   "method": "Statement_Macros#method",
   "<type>": "Type_Classes#type",
   "<class>": "Type_Classes#class",
-  "<singleton>": "Type_Classes#singleton"
+  "<singleton>": "Type_Classes#singleton",
+  "afterwards": "Statement_Macros#block"
 }
 
 def lookup(key):
-  return index.get(key.lower(), key)
+  return index.get(key.lower().replace(" ","_"), key)
 
