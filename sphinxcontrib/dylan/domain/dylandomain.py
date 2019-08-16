@@ -35,11 +35,11 @@ from . import drmindex
 
 
 def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
-    match = RE.match(r'^(\S+)$|^(.*)\s<(\S+)>$', text, flags=RE.DOTALL)
+    match = RE.match(r'^(.*)\s<(\S+)>$|^(.*)$', text, flags=RE.DOTALL)
     if match:
         base_url = inliner.document.settings.env.app.config.dylan_drm_url
 
-        linkkey1, linktext, linkkey2 = match.groups()
+        linktext, linkkey1, linkkey2 = match.groups()
         linkkey = linkkey1 or linkkey2
         linktext = (linktext or linkkey).strip()
         location = drmindex.lookup(linkkey)
@@ -53,7 +53,7 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
     else:
         msg = inliner.reporter.error(
             'Invalid syntax for :dylan:drm: role; '
-            '`{0}` should be like `ref` or `text <ref>`.'.format(text),
+            '`{0}` should be like `ref` (one or more words) or `text <ref>`.'.format(text),
             line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
