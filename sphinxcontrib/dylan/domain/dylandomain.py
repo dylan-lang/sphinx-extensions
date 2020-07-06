@@ -742,12 +742,15 @@ class DylanDomain (Domain):
     ]
 
     def clear_doc(self, docname):
-        for fullid, (objects_docname, _, _, _, specname, _) in self.data['objects'].items():
+        objects = self.data['objects']
+        for fullid in list(objects):
+            (objects_docname, _, _, _, specname, _) = objects[fullid]
             if objects_docname == docname:
-                del self.data['objects'][fullid]
+                del objects[fullid]
                 specid = name_to_id(specname)
-                if fullid in self.data['fullids'].get(specid, {}):
-                    self.data['fullids'][specid].remove(fullid)
+                ids = self.data['fullids'].get(specid, [])
+                if fullid in ids:
+                    ids.remove(fullid)
 
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         if typ == 'ref':
