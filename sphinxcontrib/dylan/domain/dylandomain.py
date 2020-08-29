@@ -742,7 +742,7 @@ class DylanDomain (Domain):
     ]
 
     def clear_doc(self, docname):
-        for fullid, (objects_docname, _, _, _, specname, _) in self.data['objects'].items():
+        for fullid, (objects_docname, _, _, _, specname, _) in list(self.data['objects'].items()):
             if objects_docname == docname:
                 del self.data['objects'][fullid]
                 specid = name_to_id(specname)
