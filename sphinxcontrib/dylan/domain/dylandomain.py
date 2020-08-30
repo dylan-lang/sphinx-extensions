@@ -8,7 +8,7 @@ Copyright (c) 2011-2016 Open Dylan Maintainers. All rights reserved.
 
 import sys as SYS, os as OS, re as RE
 try:
-    from urlparse import urljoin
+    from urllib.parse import urljoin
 except ImportError:
     from urllib.parse import urljoin
 
@@ -244,7 +244,7 @@ class DylanDescDirective (DescDirective):
         # add index
         indexentry = str(shortname)
         if shortname != specname:
-            indexentry += u"; {0}".format(specname)
+            indexentry += "; {0}".format(specname)
         self.indexnode['entries'].append(('single', indexentry,
                                           fullid, '', None))
 
