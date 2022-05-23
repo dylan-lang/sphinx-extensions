@@ -20,7 +20,7 @@ from docutils.parsers.rst.roles import set_classes
 from docutils.parsers.rst import Directive
 from sphinx.domains import Domain, Index
 from sphinx.domains import ObjType
-from sphinx.directives import DescDirective
+from sphinx.directives import ObjectDescription
 from sphinx.roles import XRefRole
 from sphinx.util.docfields import Field, GroupedField, TypedField
 from sphinx.util.nodes import make_refnode
@@ -142,7 +142,7 @@ class DylanCurrentModule (Directive):
         return []
 
 
-class DylanDescDirective (DescDirective):
+class DylanDescDirective (ObjectDescription):
     """A documentable Dylan language object."""
 
     display_name = None
@@ -158,7 +158,7 @@ class DylanDescDirective (DescDirective):
     listed in option_spec, though not all options need to be annotations.
     """
 
-    option_spec = dict(DescDirective.option_spec.items())
+    option_spec = dict(ObjectDescription.option_spec.items())
     option_spec.update(dict({
         'synopsis': DIRECTIVES.unchanged,
     }.items()))
@@ -170,7 +170,7 @@ class DylanDescDirective (DescDirective):
             names=('discussion', 'description')),
         Field('seealso', label="See also", has_arg=False,
             names=('seealso',)),
-    ] + DescDirective.doc_field_types
+    ] + ObjectDescription.doc_field_types
 
     # It is not documented, but self.names is a series of tuples. Each tuple is
     # the result of handle_signature on a signature. A signature is a directive
