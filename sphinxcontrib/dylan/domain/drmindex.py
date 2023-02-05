@@ -1,9 +1,7 @@
 # encoding: utf-8
-""",
-drmindex.py
-
+"""
 Copyright (c) 2011-2019 Open Dylan Maintainers. All rights reserved.
-""",
+"""
 
 index = {
   "odd?": "Arithmetic_Operations#odd_",
@@ -217,7 +215,11 @@ index = {
   "<rational>": "Number_Classes#rational",
   "<integer>": "Number_Classes#integer",
   "<object>": "Object_Classes#object",
+  "condition": "Signalers_Conditions_and_Handlers",
+  "handlers": "Signalers_Conditions_and_Handlers",
+  "signaler": "Signalers_Conditions_and_Handlers",
   "signal": "Operations_on_Conditions#signal",
+  "restart": "Exception_Handling#IX-941",
   "error": "Operations_on_Conditions#error",
   "cerror": "Operations_on_Conditions#cerror",
   "break": "Operations_on_Conditions#break",
@@ -269,9 +271,25 @@ index = {
   "<type>": "Type_Classes#type",
   "<class>": "Type_Classes#class",
   "<singleton>": "Type_Classes#singleton",
-  "afterwards": "Statement_Macros#block"
+  "afterwards": "Statement_Macros#block",
+  "exit_variable": "Statement_Macros#IX-2064",
+  "cleanup": "Nonlocal_Exits_and_Cleanup_Clauses#IX-469",
+  "nonlocal_exit": "Nonlocal_Exits_and_Cleanup_Clauses#IX-469",
+  "methods": "Functions_Overview#IX-763",
+  "bare_methods": "Functions_Overview#IX-773",
+  "closures": "Functions_Overview#IX-777",
+  "generic_functions": "Functions_Overview#IX-754",
+  "sealing": "Sealing",
+  "method_dispatch": "Method_Dispatch",
+  "singletons": "Singletons",
+  "modules": "Modules",
+  "slots": "Slots",
+  "bindings": "Bindings",
+  "abstract": "Classes#IX-568",
+  "concrete": "Classes#IX-568",
+  "instantiable": "Classes#IX-570",
+  "uninstantiable": "Classes#IX-570",
 }
 
 def lookup(key):
-  return index.get(key.lower().replace(" ","_"), key)
-
+  return index.get(key.lower().replace("\n", "_").replace(" ", "_"), key)
