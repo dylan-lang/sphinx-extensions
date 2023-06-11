@@ -142,6 +142,12 @@ class DylanCurrentModule (Directive):
         return []
 
 
+# DylanDescDirective used to subclass DescDirective, which was deprecated and
+# then removed completely. Hence the "Desc" in the name, I suspect. It's a good
+# bet this should be called something like DylanObjectDescription or
+# DylanLanguageObject now, but I'm being a little conservative about renaming
+# everything until I know the code better. --cgay, 2023
+
 class DylanDescDirective (ObjectDescription):
     """A documentable Dylan language object."""
 
