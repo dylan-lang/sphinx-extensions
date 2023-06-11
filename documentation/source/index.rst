@@ -1,6 +1,19 @@
-**************************
-  Dylan Domain Reference
-**************************
+**********************
+Dylan Domain Reference
+**********************
+
+This document describes the "dylan" Sphinx domain which contains directives and
+roles for documenting Dylan source code.
+
+Note that while directives are shown here in their full form,
+``:dylan:foo:`...```, most Dylan documentation sets "dylan" as the default
+domain in :file:`conf.py` with
+
+.. code-block:: python
+
+   primary_domain = 'dylan'
+
+which makes it possible to simply write ``:foo:`...``` instead.
 
 .. contents::
 
@@ -442,7 +455,7 @@ blank lines.
    :Syntax: ``:library: NAME``
 
 ``:module:``
-^^^^^^^^^^^^^
+^^^^^^^^^^^^
 
    Sets the current module, also affecting documentation following the
    directive. Mostly for automatically-generated documentation; hand-written
