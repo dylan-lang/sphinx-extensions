@@ -6,7 +6,7 @@ Created by Dustin Voss on 2011-11-10.
 Copyright (c) 2011-2016 Open Dylan Maintainers. All rights reserved.
 """
 
-import sys as SYS, os as OS, re as RE
+import re
 try:
     from urllib.parse import urljoin
 except ImportError:
@@ -35,7 +35,7 @@ from . import drmindex
 
 
 def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
-    match = RE.match(r'^(.*)\s<(\S+)>$|^(.*)$', text, flags=RE.DOTALL)
+    match = re.match(r'^(.*)\s<(\S+)>$|^(.*)$', text, flags=re.DOTALL)
     if match:
         base_url = inliner.document.settings.env.app.config.dylan_drm_url
 
@@ -109,7 +109,7 @@ def fullname_parts (fullname):
 
 def name_to_id (name):
     name = name.replace('<', '[').replace('>', ']')
-    return RE.sub(r'\s', '', name).lower()
+    return re.sub(r'\s', '', name).lower()
 
 
 class DylanCurrentLibrary (Directive):
@@ -641,11 +641,11 @@ def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
     title.
     """
     if name == 'dylan:meth':
-        match = RE.match(r'^(.+)\s<(\S+\(.+\))>$|^(\S+\(.+\))$', text, flags=RE.DOTALL)
+        match = re.match(r'^(.+)\s<(\S+\(.+\))>$|^(\S+\(.+\))$', text, flags=re.DOTALL)
     elif name == 'dylan:macro':
-        match = RE.match(r'^(.+)\s<((?:define\s+)?\S+)>$|^((?:define\s+)?\S+)$', text, flags=RE.DOTALL)
+        match = re.match(r'^(.+)\s<((?:define\s+)?\S+)>$|^((?:define\s+)?\S+)$', text, flags=re.DOTALL)
     else:
-        match = RE.match(r'^(.+)\s<(\S+)>$|^(\S+)$', text, flags=RE.DOTALL)
+        match = re.match(r'^(.+)\s<(\S+)>$|^(\S+)$', text, flags=re.DOTALL)
 
     if match:
         linktitle, linkkey1, linkkey2 = match.groups()
