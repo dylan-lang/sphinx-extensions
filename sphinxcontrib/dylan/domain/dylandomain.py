@@ -6,7 +6,7 @@ Created by Dustin Voss on 2011-11-10.
 Copyright (c) 2011-2016 Open Dylan Maintainers. All rights reserved.
 """
 
-import sys as SYS, os as OS, re as RE
+import re
 try:
     from urllib.parse import urljoin
 except ImportError:
@@ -35,7 +35,7 @@ from . import drmindex
 
 
 def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
-    match = RE.match(r'^(.*)\s<(\S+)>$|^(.*)$', text, flags=RE.DOTALL)
+    match = re.match(r'^(.*)\s<(\S+)>$|^(.*)$', text, flags=re.DOTALL)
     if match:
         base_url = inliner.document.settings.env.app.config.dylan_drm_url
 
@@ -109,7 +109,7 @@ def fullname_parts (fullname):
 
 def name_to_id (name):
     name = name.replace('<', '[').replace('>', ']')
-    return RE.sub(r'\s', '', name).lower()
+    return re.sub(r'\s', '', name).lower()
 
 
 class DylanCurrentLibrary (Directive):
@@ -142,6 +142,12 @@ class DylanCurrentModule (Directive):
         return []
 
 
+# DylanDescDirective used to subclass DescDirective, which was deprecated and
+# then removed completely. Hence the "Desc" in the name, I suspect. It's a good
+# bet this should be called something like DylanObjectDescription or
+# DylanLanguageObject now, but I'm being a little conservative about renaming
+# everything until I know the code better. --cgay, 2023
+
 class DylanDescDirective (ObjectDescription):
     """A documentable Dylan language object."""
 
@@ -159,17 +165,15 @@ class DylanDescDirective (ObjectDescription):
     """
 
     option_spec = dict(ObjectDescription.option_spec.items())
-    option_spec.update(dict({
-        'synopsis': DIRECTIVES.unchanged,
-    }.items()))
+    option_spec.update(dict({'synopsis': DIRECTIVES.unchanged}.items()))
 
     doc_field_types = [
         Field('summary', label="Summary", has_arg=False,
-            names=('summary')),
+              names=('summary')),
         Field('discussion', label="Discussion", has_arg=False,
-            names=('discussion', 'description')),
+              names=('discussion', 'description')),
         Field('seealso', label="See also", has_arg=False,
-            names=('seealso',)),
+              names=('seealso',)),
     ] + ObjectDescription.doc_field_types
 
     # It is not documented, but self.names is a series of tuples. Each tuple is
@@ -284,9 +288,7 @@ class DylanModuleDesc (DylanDescDirective):
     display_name = "module"
 
     option_spec = dict(DylanDescDirective.option_spec.items())
-    option_spec.update(dict({
-        'library': DIRECTIVES.unchanged,
-    }.items()))
+    option_spec.update(dict({'library': DIRECTIVES.unchanged}.items()))
 
     def fullname (self, partial):
         env = self.state.document.settings.env
@@ -320,7 +322,7 @@ class DylanBindingDesc (DylanDescDirective):
 
     doc_field_types = [
         Field('example', label="Example", has_arg=False,
-            names=('example')),
+              names=('example')),
     ] + DylanDescDirective.doc_field_types
 
     def fullname (self, partial):
@@ -329,7 +331,8 @@ class DylanBindingDesc (DylanDescDirective):
         module_option = self.options.get('module', None)
         try:
             return binding_fullname(env, partial,
-                    library=library_option, module=module_option)
+                                    library=library_option,
+                                    module=module_option)
         except ValueError as ve:
             self.warn_and_raise_error(ve)
 
@@ -365,16 +368,16 @@ class DylanClassDesc (DylanBindingDesc):
 
     doc_field_types = [
         Field('superclasses', label="Superclasses", has_arg=False,
-            names=('supers', 'superclasses', 'super', 'superclass')),
+              names=('supers', 'superclasses', 'super', 'superclass')),
         TypedField('keyword', label="Init-Keywords",
-            names=('keyword', 'init-keyword')),
+                   names=('keyword', 'init-keyword')),
         GroupedField('slots', label="Slots",
-            names=('slot', 'getter')),
+                     names=('slot', 'getter')),
         Field('conditions', label="Conditions", has_arg=False,
-            names=('conditions', 'exceptions', 'condition', 'exception',
-                   'signals', 'throws')),
+              names=('conditions', 'exceptions', 'condition', 'exception',
+                     'signals', 'throws')),
         Field('operations', label="Operations", has_arg=False,
-            names=('operations', 'methods', 'functions')),
+              names=('operations', 'methods', 'functions')),
     ] + DylanBindingDesc.doc_field_types
 
 
@@ -383,13 +386,13 @@ class DylanFunctionDesc (DylanBindingDesc):
 
     doc_field_types = [
         TypedField('parameters', label="Parameters",
-            names=('param', 'parameter')),
+                   names=('param', 'parameter')),
         GroupedField('values', label="Values",
-            names=('value', 'val', 'retval', 'return')),
+                     names=('value', 'val', 'retval', 'return')),
         Field('signature', label="Signature", has_arg=False,
-            names=('sig', 'signature')),
+              names=('sig', 'signature')),
         Field('conditions', label="Conditions", has_arg=False,
-            names=('conditions', 'exceptions', 'signals', 'throws')),
+              names=('conditions', 'exceptions', 'signals', 'throws')),
     ] + DylanBindingDesc.doc_field_types
 
 
@@ -450,9 +453,9 @@ class DylanConstOrVarDesc (DylanBindingDesc):
 
     doc_field_types = [
         Field('type', label="Type",
-            names=('type')),
+              names=('type')),
         Field('value', label="Value",
-            names=('value', 'val'))
+              names=('value', 'val'))
     ] + DylanBindingDesc.doc_field_types
 
 
@@ -468,11 +471,11 @@ class DylanTypeDesc (DylanConstOrVarDesc):
 
     doc_field_types = [
         Field('supertypes', label="Supertypes", has_arg=False,
-            names=('supers', 'supertypes', 'super', 'supertype')),
+              names=('supers', 'supertypes', 'super', 'supertype')),
         Field('equivalent', label="Equivalent", has_arg=False,
-            names=('equivalent')),
+              names=('equivalent')),
         Field('operations', label="Operations", has_arg=False,
-            names=('operations', 'methods', 'functions')),
+              names=('operations', 'methods', 'functions')),
     ] + DylanConstOrVarDesc.doc_field_types
 
 
@@ -512,11 +515,11 @@ class DylanMacroDesc (DylanBindingDesc):
 
     doc_field_types = [
         TypedField('parameters', label="Parameters",
-            names=('param', 'parameter')),
+                   names=('param', 'parameter')),
         GroupedField('values', label="Values",
-            names=('value', 'val', 'retval', 'return')),
+                     names=('value', 'val', 'retval', 'return')),
         Field('call', label="Macro Call", has_arg=False,
-            names=('call', 'macrocall', 'syntax'))
+              names=('call', 'macrocall', 'syntax'))
     ] + DylanBindingDesc.doc_field_types
 
 
@@ -638,11 +641,11 @@ def desc_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
     title.
     """
     if name == 'dylan:meth':
-        match = RE.match(r'^(.+)\s<(\S+\(.+\))>$|^(\S+\(.+\))$', text, flags=RE.DOTALL)
+        match = re.match(r'^(.+)\s<(\S+\(.+\))>$|^(\S+\(.+\))$', text, flags=re.DOTALL)
     elif name == 'dylan:macro':
-        match = RE.match(r'^(.+)\s<((?:define\s+)?\S+)>$|^((?:define\s+)?\S+)$', text, flags=RE.DOTALL)
+        match = re.match(r'^(.+)\s<((?:define\s+)?\S+)>$|^((?:define\s+)?\S+)$', text, flags=re.DOTALL)
     else:
-        match = RE.match(r'^(.+)\s<(\S+)>$|^(\S+)$', text, flags=RE.DOTALL)
+        match = re.match(r'^(.+)\s<(\S+)>$|^(\S+)$', text, flags=re.DOTALL)
 
     if match:
         linktitle, linkkey1, linkkey2 = match.groups()
