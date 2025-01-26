@@ -1,4 +1,5 @@
-# Sphinx extensions
+Sphinx extensions
+=================
 
 Extensions to the `Sphinx <http://sphinx-doc.org/>`_ documentation
 generator specifically designed to support the Dylan programming
