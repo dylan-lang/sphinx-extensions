@@ -1,1 +1,9 @@
+# Backup files
+*~
+*.bak
+
+# Python bytecode
 *.pyc
+
+# Documentation build directory
+/documentation/build

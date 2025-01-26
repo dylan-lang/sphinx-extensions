@@ -1,9 +1,8 @@
-These are extensions for `Sphinx <http://sphinx-doc.org/>`_ that we use in the
-construction of our website and documentation.
+# Sphinx extensions
 
-This repository is usually pulled into the appropriate places as a git
-submodule.
+Extensions to the `Sphinx <http://sphinx-doc.org/>`_ documentation
+generator specifically designed to support the Dylan programming
+language.
 
-See
-https://github.com/dylan-lang/sphinx-extensions/blob/master/documentation/source/index.rst
-for documentation on the "dylan" Sphinx domain.
+See https://package.opendylan.org/sphinx-extensions/ for documentation
+on the "dylan" Sphinx domain.
