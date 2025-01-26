@@ -15,9 +15,6 @@ domain in :file:`conf.py` with
 
 which makes it possible to simply write ``:foo:`...``` instead.
 
-.. contents::
-   :hidden:
-
 
 `Dylan Reference Manual`:t: links
 =================================
