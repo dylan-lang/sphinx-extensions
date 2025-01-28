@@ -1,8 +1,10 @@
 {
     "name": "sphinx-extensions",
     "description": "Dylan extensions to the Sphinx documentation tools",
-    "version": "0.2.0",
+    "version": "1.0.0",
     "dependencies": [],
     "dev-dependencies": [],
-    "url": "https://github.com/dylan-lang/sphinx-extensions"
+    "url": "https://github.com/dylan-lang/sphinx-extensions",
+    "contact": "dylan-lang@googlegroups.com",
+    "keywords": ["documentation", "docs", "sphinx", "rst"]
 }

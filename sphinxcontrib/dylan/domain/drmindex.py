@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Copyright (c) 2011-2019 Open Dylan Maintainers. All rights reserved.
+Copyright (c) 2011-2025 Dylan Hackers. All rights reserved.
 """
 
 index = {
