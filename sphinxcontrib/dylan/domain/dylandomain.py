@@ -3,7 +3,7 @@
 dylandomain.py
 
 Created by Dustin Voss on 2011-11-10.
-Copyright (c) 2011-2016 Open Dylan Maintainers. All rights reserved.
+Copyright (c) 2011-2025 Dylan Hackers. All rights reserved.
 """
 
 import re
