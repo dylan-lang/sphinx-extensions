@@ -12,11 +12,11 @@ try:
 except ImportError:
     from urllib.parse import urljoin
 
+import docutils
 import docutils.nodes as RST_NODES
 import docutils.parsers.rst.directives as DIRECTIVES
 import sphinx.addnodes as SPHINX_NODES
 
-from docutils.parsers.rst.roles import set_classes
 from docutils.parsers.rst import Directive
 from sphinx.domains import Domain, Index
 from sphinx.domains import ObjType
@@ -45,7 +45,7 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
         location = drmindex.lookup(linkkey)
         href = urljoin(base_url, location)
 
-        set_classes(options)
+        options = docutils.parsers.rst.roles.normalized_role_options(options)
         textnode = RST_NODES.literal(rawtext, linktext, classes=['xref', 'drm'])
         linknode = RST_NODES.reference('', '', refuri=href, **options)
         linknode += textnode
