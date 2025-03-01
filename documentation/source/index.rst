@@ -36,6 +36,14 @@ Roles
    configured by `dylan_drm_index`_. The partial URL is appended to the base URL
    configured by the `dylan_drm_url`_.
 
+   For example, this link to :drm:`<object>` was produced with the markup
+   ``:drm:`<object>```, which assumes the above configuration setting of ``primary_domain
+   = 'dylan'``.
+
+.. The above usage of the :drm: role is explicitly included as a very minimal test to
+   make sure that when this documentation is built it at least uses some of the code in
+   dylandomain.py; please don't remove it.
+
 
 Configurables
 -------------
@@ -53,7 +61,7 @@ Configurables
    partial URLs. Each line is a correspondence. The first word is the Dylan
    name, followed by whitespace, then the remainder is the partial URL. Defaults
    to partial URLs corresponding to the copy of the `Dylan Reference Manual`:t:
-   at `<http://opendylan.org>`_.
+   at `opendylan.org <https://opendylan.org>`_.
 
 
 Library, module, and binding documentation
