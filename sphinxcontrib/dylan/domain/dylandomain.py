@@ -168,11 +168,17 @@ class DylanDescDirective (ObjectDescription):
     option_spec.update(dict({'synopsis': DIRECTIVES.unchanged}.items()))
 
     doc_field_types = [
-        Field('summary', label="Summary", has_arg=False,
+        Field('summary',
+              label="Summary",
+              has_arg=False,
               names=('summary')),
-        Field('discussion', label="Discussion", has_arg=False,
+        Field('discussion',
+              label="Discussion",
+              has_arg=False,
               names=('discussion', 'description')),
-        Field('seealso', label="See also", has_arg=False,
+        Field('seealso',
+              label="See also",
+              has_arg=False,
               names=('seealso',)),
     ] + ObjectDescription.doc_field_types
 
@@ -321,7 +327,9 @@ class DylanBindingDesc (DylanDescDirective):
     }.items()))
 
     doc_field_types = [
-        Field('example', label="Example", has_arg=False,
+        Field('example',
+              label="Example",
+              has_arg=False,
               names=('example')),
     ] + DylanDescDirective.doc_field_types
 
@@ -367,16 +375,24 @@ class DylanClassDesc (DylanBindingDesc):
     }.items()))
 
     doc_field_types = [
-        Field('superclasses', label="Superclasses", has_arg=False,
+        Field('superclasses',
+              label="Superclasses",
+              has_arg=False,
               names=('supers', 'superclasses', 'super', 'superclass')),
-        TypedField('keyword', label="Init-Keywords",
+        TypedField('keyword',
+                   label="Init-Keywords",
                    names=('keyword', 'init-keyword')),
-        GroupedField('slots', label="Slots",
+        GroupedField('slots',
+                     label="Slots",
                      names=('slot', 'getter')),
-        Field('conditions', label="Conditions", has_arg=False,
+        Field('conditions',
+              label="Conditions",
+              has_arg=False,
               names=('conditions', 'exceptions', 'condition', 'exception',
                      'signals', 'throws')),
-        Field('operations', label="Operations", has_arg=False,
+        Field('operations',
+              label="Operations",
+              has_arg=False,
               names=('operations', 'methods', 'functions')),
     ] + DylanBindingDesc.doc_field_types
 
@@ -385,13 +401,19 @@ class DylanFunctionDesc (DylanBindingDesc):
     """A Dylan function, method, or generic function."""
 
     doc_field_types = [
-        TypedField('parameters', label="Parameters",
+        TypedField('parameters',
+                   label="Parameters",
                    names=('param', 'parameter')),
-        GroupedField('values', label="Values",
+        GroupedField('values',
+                     label="Values",
                      names=('value', 'val', 'retval', 'return')),
-        Field('signature', label="Signature", has_arg=False,
+        Field('signature',
+              label="Signature",
+              has_arg=False,
               names=('sig', 'signature')),
-        Field('conditions', label="Conditions", has_arg=False,
+        Field('conditions',
+              label="Conditions",
+              has_arg=False,
               names=('conditions', 'exceptions', 'signals', 'throws')),
     ] + DylanBindingDesc.doc_field_types
 
@@ -452,9 +474,11 @@ class DylanConstOrVarDesc (DylanBindingDesc):
     """A Dylan constant or variable."""
 
     doc_field_types = [
-        Field('type', label="Type",
+        Field('type',
+              label="Type",
               names=('type')),
-        Field('value', label="Value",
+        Field('value',
+              label="Value",
               names=('value', 'val'))
     ] + DylanBindingDesc.doc_field_types
 
@@ -470,11 +494,17 @@ class DylanTypeDesc (DylanConstOrVarDesc):
     display_name ="type"
 
     doc_field_types = [
-        Field('supertypes', label="Supertypes", has_arg=False,
+        Field('supertypes',
+              label="Supertypes",
+              has_arg=False,
               names=('supers', 'supertypes', 'super', 'supertype')),
-        Field('equivalent', label="Equivalent", has_arg=False,
+        Field('equivalent',
+              label="Equivalent",
+              has_arg=False,
               names=('equivalent')),
-        Field('operations', label="Operations", has_arg=False,
+        Field('operations',
+              label="Operations",
+              has_arg=False,
               names=('operations', 'methods', 'functions')),
     ] + DylanConstOrVarDesc.doc_field_types
 
@@ -514,11 +544,15 @@ class DylanMacroDesc (DylanBindingDesc):
     }.items()))
 
     doc_field_types = [
-        TypedField('parameters', label="Parameters",
+        TypedField('parameters',
+                   label="Parameters",
                    names=('param', 'parameter')),
-        GroupedField('values', label="Values",
+        GroupedField('values',
+                     label="Values",
                      names=('value', 'val', 'retval', 'return')),
-        Field('call', label="Macro Call", has_arg=False,
+        Field('call',
+              label="Macro Call",
+              has_arg=False,
               names=('call', 'macrocall', 'syntax'))
     ] + DylanBindingDesc.doc_field_types
 
@@ -680,48 +714,48 @@ class DylanDomain (Domain):
     label = 'Dylan'
 
     roles = {
-        'drm': drm_link,
-        'lib': desc_link,
-        'mod': desc_link,
-        'class': desc_link,
-        'var': desc_link,
-        'const': desc_link,
-        'func': desc_link,
-        'meth': desc_link,
-        'gf': desc_link,
-        'macro': desc_link,
-        'prim': desc_link,
-        'type': desc_link,
+        'drm':    drm_link,
+        'lib':    desc_link,
+        'mod':    desc_link,
+        'class':  desc_link,
+        'var':    desc_link,
+        'const':  desc_link,
+        'func':   desc_link,
+        'meth':   desc_link,
+        'gf':     desc_link,
+        'macro':  desc_link,
+        'prim':   desc_link,
+        'type':   desc_link,
     }
 
     directives = {
-        'current-library': DylanCurrentLibrary,
-        'current-module': DylanCurrentModule,
-        'library': DylanLibraryDesc,
-        'module': DylanModuleDesc,
-        'class': DylanClassDesc,
-        'variable': DylanVariableDesc,
-        'constant': DylanConstantDesc,
-        'function': DylanConstFuncDesc,
-        'method': DylanMethodDesc,
-        'generic-function': DylanGenFuncDesc,
-        'primitive': DylanPrimitiveDesc,
-        'macro': DylanMacroDesc,
-        'type': DylanTypeDesc,
+        'current-library':   DylanCurrentLibrary,
+        'current-module':    DylanCurrentModule,
+        'library':           DylanLibraryDesc,
+        'module':            DylanModuleDesc,
+        'class':             DylanClassDesc,
+        'variable':          DylanVariableDesc,
+        'constant':          DylanConstantDesc,
+        'function':          DylanConstFuncDesc,
+        'method':            DylanMethodDesc,
+        'generic-function':  DylanGenFuncDesc,
+        'primitive':         DylanPrimitiveDesc,
+        'macro':             DylanMacroDesc,
+        'type':              DylanTypeDesc,
     }
 
     object_types = {
-        'library':  ObjType('library', 'lib'),
-        'module':   ObjType('module', 'mod'),
-        'class':    ObjType('class', 'class'),
-        'variable': ObjType('variable', 'var'),
-        'constant': ObjType('constant', 'const'),
-        'function': ObjType('function', 'func'),
-        'method':   ObjType('method', 'meth'),
-        'generic-function': ObjType('generic-function', 'gf'),
-        'primitive': ObjType('primitive', 'prim'),
-        'macro':    ObjType('macro', 'macro'),
-        'type':     ObjType('type', 'type'),
+        'library':           ObjType('library', 'lib'),
+        'module':            ObjType('module', 'mod'),
+        'class':             ObjType('class', 'class'),
+        'variable':          ObjType('variable', 'var'),
+        'constant':          ObjType('constant', 'const'),
+        'function':          ObjType('function', 'func'),
+        'method':            ObjType('method', 'meth'),
+        'generic-function':  ObjType('generic-function', 'gf'),
+        'primitive':         ObjType('primitive', 'prim'),
+        'macro':             ObjType('macro', 'macro'),
+        'type':              ObjType('type', 'type'),
     }
 
     initial_data = {
