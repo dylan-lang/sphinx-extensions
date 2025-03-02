@@ -451,6 +451,17 @@ Directive options
 Directive options appear immediately after the directive with no intervening
 blank lines.
 
+``:no-contents-entry:``
+^^^^^^^^^^^^^^^^^^^^^^^
+
+   Tells Sphinx not to add a Table of Contents (ToC) entry for this Dylan object.  This
+   may be especially useful for `dylan:method::`_ directives because sometimes they can
+   unnecessarily clutter the ToC. If the `dylan:method::`_ directives are all colocated
+   with the `dylan:generic-function::`_ directive then it may be sufficient to only
+   include the latter in the ToC. (This option is provided by Sphinx itself.)
+
+   :Syntax: ``:no-contents-entry:``
+
 ``:library:``
 ^^^^^^^^^^^^^
 

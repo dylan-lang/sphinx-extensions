@@ -96,6 +96,9 @@ def binding_fullname (env, binding, library=None, module=None):
     return "{0}:{1}:{2}".format(library, module, binding)
 
 def fullname_parts (fullname):
+    """Returns (library, module, binding_name) for a fully qualified Dylan name of the form
+    lib:mod:name, or whatever parts of the name are available.
+    """
     parts = fullname.split(':')
     if len(parts) == 3:
         return (parts[0], parts[1], parts[2])
@@ -197,6 +200,7 @@ class DylanDescDirective (ObjectDescription):
         """
         return partial
 
+    # https://www.sphinx-doc.org/en/master/extdev/domainapi.html#sphinx.directives.ObjectDescription.handle_signature
     def handle_signature (self, sigs, signode):
         signode['classes'].append('dylan-api')
         partial = sigs.strip()
@@ -221,6 +225,7 @@ class DylanDescDirective (ObjectDescription):
         signode['fullname'] = fullname
         return (fullname, partial, dispname)
 
+    # https://www.sphinx-doc.org/en/master/extdev/domainapi.html#sphinx.directives.ObjectDescription.add_target_and_index
     def add_target_and_index (self, name_tuple, sigs, signode):
         # note target
         fullname = name_tuple[0]
@@ -268,6 +273,33 @@ class DylanDescDirective (ObjectDescription):
         msg = self.state.reporter.error(error.args[0], line=srcline)
         raise error
 
+    # https://www.sphinx-doc.org/en/master/extdev/domainapi.html#sphinx.directives.ObjectDescription._object_hierarchy_parts
+    # I see no evidence that this method actually does anything for us, but the above doc
+    # says it should exist so I'm leaving it. Perhaps it affects the toctree when all the
+    # library docs are built together? --cgay 2025
+    def _object_hierarchy_parts(self, sig_node: SPHINX_NODES.desc_signature) -> tuple[str, ...]:
+        """Returns a tuple of strings, one entry for each part of the object's
+        hierarchy (e.g. ``('module', 'submodule', 'Class', 'method')``).
+        """
+        fullname = sig_node['fullname']
+        return fullname_parts(fullname)
+
+    # https://www.sphinx-doc.org/en/master/extdev/domainapi.html#sphinx.directives.ObjectDescription._toc_entry_name
+    # Note that DylanDomain directives can be omitted from the ToC by adding the
+    # :no-contents-entry: option. In some cases, adding generic functions to the ToC
+    # without all their methods may be the right thing, since the methods can be many and
+    # may not fit in the ToC sidebar well (depending on the theme). We might want to
+    # consider having a conf.py option to set the default for whether to include methods
+    # or not. It would need to allow a list of libraries and modules because when the
+    # Dylan package docs are published there is only a single conf.py for the whole
+    # shebang. --cgay 2025
+    def _toc_entry_name(self, sig_node: SPHINX_NODES.desc_signature) -> str:
+        """Returns the text of the table of contents entry for the object.  Overrides
+        ObjectDescription._toc_entry_name.
+        """
+        fullname = sig_node['fullname']
+        lib, mod, bind = fullname_parts(fullname)
+        return bind
 
 class DylanLibraryDesc (DylanDescDirective):
     """A Dylan library."""
