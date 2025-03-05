@@ -12,11 +12,11 @@ try:
 except ImportError:
     from urllib.parse import urljoin
 
+import docutils
 import docutils.nodes as RST_NODES
 import docutils.parsers.rst.directives as DIRECTIVES
 import sphinx.addnodes as SPHINX_NODES
 
-from docutils.parsers.rst.roles import set_classes
 from docutils.parsers.rst import Directive
 from sphinx.domains import Domain, Index
 from sphinx.domains import ObjType
@@ -45,7 +45,7 @@ def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
         location = drmindex.lookup(linkkey)
         href = urljoin(base_url, location)
 
-        set_classes(options)
+        options = docutils.parsers.rst.roles.normalized_role_options(options)
         textnode = RST_NODES.literal(rawtext, linktext, classes=['xref', 'drm'])
         linknode = RST_NODES.reference('', '', refuri=href, **options)
         linknode += textnode
@@ -96,6 +96,9 @@ def binding_fullname (env, binding, library=None, module=None):
     return "{0}:{1}:{2}".format(library, module, binding)
 
 def fullname_parts (fullname):
+    """Returns (library, module, binding_name) for a fully qualified Dylan name of the form
+    lib:mod:name, or whatever parts of the name are available.
+    """
     parts = fullname.split(':')
     if len(parts) == 3:
         return (parts[0], parts[1], parts[2])
@@ -168,11 +171,17 @@ class DylanDescDirective (ObjectDescription):
     option_spec.update(dict({'synopsis': DIRECTIVES.unchanged}.items()))
 
     doc_field_types = [
-        Field('summary', label="Summary", has_arg=False,
+        Field('summary',
+              label="Summary",
+              has_arg=False,
               names=('summary')),
-        Field('discussion', label="Discussion", has_arg=False,
+        Field('discussion',
+              label="Discussion",
+              has_arg=False,
               names=('discussion', 'description')),
-        Field('seealso', label="See also", has_arg=False,
+        Field('seealso',
+              label="See also",
+              has_arg=False,
               names=('seealso',)),
     ] + ObjectDescription.doc_field_types
 
@@ -191,6 +200,7 @@ class DylanDescDirective (ObjectDescription):
         """
         return partial
 
+    # https://www.sphinx-doc.org/en/master/extdev/domainapi.html#sphinx.directives.ObjectDescription.handle_signature
     def handle_signature (self, sigs, signode):
         signode['classes'].append('dylan-api')
         partial = sigs.strip()
@@ -215,6 +225,7 @@ class DylanDescDirective (ObjectDescription):
         signode['fullname'] = fullname
         return (fullname, partial, dispname)
 
+    # https://www.sphinx-doc.org/en/master/extdev/domainapi.html#sphinx.directives.ObjectDescription.add_target_and_index
     def add_target_and_index (self, name_tuple, sigs, signode):
         # note target
         fullname = name_tuple[0]
@@ -262,6 +273,33 @@ class DylanDescDirective (ObjectDescription):
         msg = self.state.reporter.error(error.args[0], line=srcline)
         raise error
 
+    # https://www.sphinx-doc.org/en/master/extdev/domainapi.html#sphinx.directives.ObjectDescription._object_hierarchy_parts
+    # I see no evidence that this method actually does anything for us, but the above doc
+    # says it should exist so I'm leaving it. Perhaps it affects the toctree when all the
+    # library docs are built together? --cgay 2025
+    def _object_hierarchy_parts(self, sig_node: SPHINX_NODES.desc_signature) -> tuple[str, ...]:
+        """Returns a tuple of strings, one entry for each part of the object's
+        hierarchy (e.g. ``('module', 'submodule', 'Class', 'method')``).
+        """
+        fullname = sig_node['fullname']
+        return fullname_parts(fullname)
+
+    # https://www.sphinx-doc.org/en/master/extdev/domainapi.html#sphinx.directives.ObjectDescription._toc_entry_name
+    # Note that DylanDomain directives can be omitted from the ToC by adding the
+    # :no-contents-entry: option. In some cases, adding generic functions to the ToC
+    # without all their methods may be the right thing, since the methods can be many and
+    # may not fit in the ToC sidebar well (depending on the theme). We might want to
+    # consider having a conf.py option to set the default for whether to include methods
+    # or not. It would need to allow a list of libraries and modules because when the
+    # Dylan package docs are published there is only a single conf.py for the whole
+    # shebang. --cgay 2025
+    def _toc_entry_name(self, sig_node: SPHINX_NODES.desc_signature) -> str:
+        """Returns the text of the table of contents entry for the object.  Overrides
+        ObjectDescription._toc_entry_name.
+        """
+        fullname = sig_node['fullname']
+        lib, mod, bind = fullname_parts(fullname)
+        return bind
 
 class DylanLibraryDesc (DylanDescDirective):
     """A Dylan library."""
@@ -321,7 +359,9 @@ class DylanBindingDesc (DylanDescDirective):
     }.items()))
 
     doc_field_types = [
-        Field('example', label="Example", has_arg=False,
+        Field('example',
+              label="Example",
+              has_arg=False,
               names=('example')),
     ] + DylanDescDirective.doc_field_types
 
@@ -367,16 +407,24 @@ class DylanClassDesc (DylanBindingDesc):
     }.items()))
 
     doc_field_types = [
-        Field('superclasses', label="Superclasses", has_arg=False,
+        Field('superclasses',
+              label="Superclasses",
+              has_arg=False,
               names=('supers', 'superclasses', 'super', 'superclass')),
-        TypedField('keyword', label="Init-Keywords",
+        TypedField('keyword',
+                   label="Init-Keywords",
                    names=('keyword', 'init-keyword')),
-        GroupedField('slots', label="Slots",
+        GroupedField('slots',
+                     label="Slots",
                      names=('slot', 'getter')),
-        Field('conditions', label="Conditions", has_arg=False,
+        Field('conditions',
+              label="Conditions",
+              has_arg=False,
               names=('conditions', 'exceptions', 'condition', 'exception',
                      'signals', 'throws')),
-        Field('operations', label="Operations", has_arg=False,
+        Field('operations',
+              label="Operations",
+              has_arg=False,
               names=('operations', 'methods', 'functions')),
     ] + DylanBindingDesc.doc_field_types
 
@@ -385,13 +433,19 @@ class DylanFunctionDesc (DylanBindingDesc):
     """A Dylan function, method, or generic function."""
 
     doc_field_types = [
-        TypedField('parameters', label="Parameters",
+        TypedField('parameters',
+                   label="Parameters",
                    names=('param', 'parameter')),
-        GroupedField('values', label="Values",
+        GroupedField('values',
+                     label="Values",
                      names=('value', 'val', 'retval', 'return')),
-        Field('signature', label="Signature", has_arg=False,
+        Field('signature',
+              label="Signature",
+              has_arg=False,
               names=('sig', 'signature')),
-        Field('conditions', label="Conditions", has_arg=False,
+        Field('conditions',
+              label="Conditions",
+              has_arg=False,
               names=('conditions', 'exceptions', 'signals', 'throws')),
     ] + DylanBindingDesc.doc_field_types
 
@@ -452,9 +506,11 @@ class DylanConstOrVarDesc (DylanBindingDesc):
     """A Dylan constant or variable."""
 
     doc_field_types = [
-        Field('type', label="Type",
+        Field('type',
+              label="Type",
               names=('type')),
-        Field('value', label="Value",
+        Field('value',
+              label="Value",
               names=('value', 'val'))
     ] + DylanBindingDesc.doc_field_types
 
@@ -470,11 +526,17 @@ class DylanTypeDesc (DylanConstOrVarDesc):
     display_name ="type"
 
     doc_field_types = [
-        Field('supertypes', label="Supertypes", has_arg=False,
+        Field('supertypes',
+              label="Supertypes",
+              has_arg=False,
               names=('supers', 'supertypes', 'super', 'supertype')),
-        Field('equivalent', label="Equivalent", has_arg=False,
+        Field('equivalent',
+              label="Equivalent",
+              has_arg=False,
               names=('equivalent')),
-        Field('operations', label="Operations", has_arg=False,
+        Field('operations',
+              label="Operations",
+              has_arg=False,
               names=('operations', 'methods', 'functions')),
     ] + DylanConstOrVarDesc.doc_field_types
 
@@ -514,11 +576,15 @@ class DylanMacroDesc (DylanBindingDesc):
     }.items()))
 
     doc_field_types = [
-        TypedField('parameters', label="Parameters",
+        TypedField('parameters',
+                   label="Parameters",
                    names=('param', 'parameter')),
-        GroupedField('values', label="Values",
+        GroupedField('values',
+                     label="Values",
                      names=('value', 'val', 'retval', 'return')),
-        Field('call', label="Macro Call", has_arg=False,
+        Field('call',
+              label="Macro Call",
+              has_arg=False,
               names=('call', 'macrocall', 'syntax'))
     ] + DylanBindingDesc.doc_field_types
 
@@ -680,48 +746,48 @@ class DylanDomain (Domain):
     label = 'Dylan'
 
     roles = {
-        'drm': drm_link,
-        'lib': desc_link,
-        'mod': desc_link,
-        'class': desc_link,
-        'var': desc_link,
-        'const': desc_link,
-        'func': desc_link,
-        'meth': desc_link,
-        'gf': desc_link,
-        'macro': desc_link,
-        'prim': desc_link,
-        'type': desc_link,
+        'drm':    drm_link,
+        'lib':    desc_link,
+        'mod':    desc_link,
+        'class':  desc_link,
+        'var':    desc_link,
+        'const':  desc_link,
+        'func':   desc_link,
+        'meth':   desc_link,
+        'gf':     desc_link,
+        'macro':  desc_link,
+        'prim':   desc_link,
+        'type':   desc_link,
     }
 
     directives = {
-        'current-library': DylanCurrentLibrary,
-        'current-module': DylanCurrentModule,
-        'library': DylanLibraryDesc,
-        'module': DylanModuleDesc,
-        'class': DylanClassDesc,
-        'variable': DylanVariableDesc,
-        'constant': DylanConstantDesc,
-        'function': DylanConstFuncDesc,
-        'method': DylanMethodDesc,
-        'generic-function': DylanGenFuncDesc,
-        'primitive': DylanPrimitiveDesc,
-        'macro': DylanMacroDesc,
-        'type': DylanTypeDesc,
+        'current-library':   DylanCurrentLibrary,
+        'current-module':    DylanCurrentModule,
+        'library':           DylanLibraryDesc,
+        'module':            DylanModuleDesc,
+        'class':             DylanClassDesc,
+        'variable':          DylanVariableDesc,
+        'constant':          DylanConstantDesc,
+        'function':          DylanConstFuncDesc,
+        'method':            DylanMethodDesc,
+        'generic-function':  DylanGenFuncDesc,
+        'primitive':         DylanPrimitiveDesc,
+        'macro':             DylanMacroDesc,
+        'type':              DylanTypeDesc,
     }
 
     object_types = {
-        'library':  ObjType('library', 'lib'),
-        'module':   ObjType('module', 'mod'),
-        'class':    ObjType('class', 'class'),
-        'variable': ObjType('variable', 'var'),
-        'constant': ObjType('constant', 'const'),
-        'function': ObjType('function', 'func'),
-        'method':   ObjType('method', 'meth'),
-        'generic-function': ObjType('generic-function', 'gf'),
-        'primitive': ObjType('primitive', 'prim'),
-        'macro':    ObjType('macro', 'macro'),
-        'type':     ObjType('type', 'type'),
+        'library':           ObjType('library', 'lib'),
+        'module':            ObjType('module', 'mod'),
+        'class':             ObjType('class', 'class'),
+        'variable':          ObjType('variable', 'var'),
+        'constant':          ObjType('constant', 'const'),
+        'function':          ObjType('function', 'func'),
+        'method':            ObjType('method', 'meth'),
+        'generic-function':  ObjType('generic-function', 'gf'),
+        'primitive':         ObjType('primitive', 'prim'),
+        'macro':             ObjType('macro', 'macro'),
+        'type':              ObjType('type', 'type'),
     }
 
     initial_data = {
