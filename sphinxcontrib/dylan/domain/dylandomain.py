@@ -35,7 +35,7 @@ from . import drmindex
 
 
 def drm_link (name, rawtext, text, lineno, inliner, options={}, context=[]):
-    match = re.match(r'^(.*)\s<(\S+)>$|^(.*)$', text, flags=re.DOTALL)
+    match = re.match(r'^(.*)\s<([^>]+)>$|^(.*)$', text, flags=re.DOTALL)
     if match:
         base_url = inliner.document.settings.env.app.config.dylan_drm_url
 
