@@ -196,7 +196,7 @@ Directives with content
 
    A primitive operation.
 
-   :Syntax:       `.. dylan:primitive:: NAME``
+   :Syntax:       ``.. dylan:primitive:: NAME``
    :Options:      `:adjectives:`_, `:library:`_, `:module:`_
    :Doc Fields:   `:param:`_, `:value: (1)`_, `:signature:`_, `:summary:`_,
                   `:discussion:`_, `:conditions:`_, `:example:`_, `:seealso:`_
